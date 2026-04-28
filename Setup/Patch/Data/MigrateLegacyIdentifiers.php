@@ -32,7 +32,7 @@ class MigrateLegacyIdentifiers implements DataPatchInterface
         return [];
     }
 
-    public function apply()
+    public function apply(): void
     {
         $connection = $this->moduleDataSetup->getConnection();
         $configTable = $this->moduleDataSetup->getTable('core_config_data');

@@ -13,7 +13,9 @@ class Deployer
 {
     private const API_URL_PATTERN = 'https://api.cloudflare.com/client/v4/accounts/%s/workers/scripts/%s';
     private const COMPATIBILITY_DATE = '2026-04-28';
+    private const CONNECT_TIMEOUT = 10;
     private const MODULE_NAME = 'ByteBencher_Cloudflare';
+    private const REQUEST_TIMEOUT = 60;
     private const SCRIPT_PART_NAME = 'main.js';
     private const SCRIPT_PATH = '/CFWorker/FPC-worker.js';
 
@@ -175,7 +177,7 @@ class Deployer
 
         curl_setopt_array($curlHandle, [
             CURLOPT_CUSTOMREQUEST => 'PUT',
-            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
             CURLOPT_HTTPHEADER => [
                 'Authorization: Bearer ' . trim((string) $this->config->getApiTokenForWebsite($websiteCode)),
                 'Accept: application/json',
@@ -185,7 +187,7 @@ class Deployer
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYHOST => 2,
             CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_TIMEOUT => 60,
+            CURLOPT_TIMEOUT => self::REQUEST_TIMEOUT,
         ]);
 
         $rawResponse = curl_exec($curlHandle);
