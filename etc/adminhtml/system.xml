@@ -58,7 +58,7 @@
                 <field id="account_id" translate="label comment" sortOrder="25" type="text"
                        showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Account ID</label>
-                    <comment><![CDATA[Cloudflare Account ID from the dashboard Overview page. Needed when using the <strong>Deploy FPC Worker</strong> button from Magento Admin.]]></comment>
+                    <comment><![CDATA[Cloudflare Account ID from the dashboard Overview page. Only required when using the <strong>Deploy FPC Worker</strong> button from Magento Admin.]]></comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>

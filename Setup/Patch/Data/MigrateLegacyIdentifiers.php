@@ -54,7 +54,11 @@ class MigrateLegacyIdentifiers implements DataPatchInterface
                 1
             );
 
-            if ($newPath === null || $newPath === $row['path']) {
+            if ($newPath === null) {
+                continue;
+            }
+
+            if ($newPath === $row['path']) {
                 continue;
             }
 

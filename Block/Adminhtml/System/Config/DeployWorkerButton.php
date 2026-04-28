@@ -36,7 +36,7 @@ class DeployWorkerButton extends Field
                 'label' => __('Deploy FPC Worker'),
                 'class' => 'secondary',
                 'type' => 'button',
-                'onclick' => 'byteBencherCloudflareDeployWorker(this); return false;',
+                'onclick' => 'bytebencherCloudflareDeployWorker(this); return false;',
             ],
         ])->toHtml();
     }
