@@ -17,15 +17,14 @@
                 <api_url>https://api.cloudflare.com/client/v4/zones/%s/purge_cache</api_url>
                 <api_token backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
             </cache>
-
-<!--  Future implementation plan to have an option fully managing the Cloudflare Worker configuration from Magento admin, including pushing updates to the worker via API. -->
-<!--  For now, worker configuration is managed separately via Wrangler or Cloudflare dashboard. -->
-<!--            <worker>-->
-<!--                <debug>0</debug>-->
-<!--                <hfp_ttl>120</hfp_ttl>-->
-<!--                <admin_path/>-->
-<!--                <bypass_paths/>-->
-<!--            </worker>-->
+            <worker>
+                <worker_name/>
+                <debug>0</debug>
+                <default_ttl/>
+                <hfp_ttl>120</hfp_ttl>
+                <admin_path>admin</admin_path>
+                <bypass_paths/>
+            </worker>
         </srcloudflare>
     </default>
 </config>

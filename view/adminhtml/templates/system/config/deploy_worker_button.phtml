@@ -1,0 +1,24 @@
+<?php
+/**
+ * @var \SR\Cloudflare\Block\Adminhtml\System\Config\DeployWorkerButton $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<?= /* @noEscape */ $block->getButtonHtml() ?>
+<script>
+    function srCloudflareDeployWorker() {
+        const form = document.createElement('form');
+        const formKey = document.createElement('input');
+
+        form.method = 'post';
+        form.action = '<?= $escaper->escapeJs($block->getActionUrl()) ?>';
+
+        formKey.type = 'hidden';
+        formKey.name = 'form_key';
+        formKey.value = '<?= $escaper->escapeJs($block->getFormKey()) ?>';
+
+        form.appendChild(formKey);
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>

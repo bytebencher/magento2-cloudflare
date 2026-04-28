@@ -132,9 +132,21 @@ These settings are scoped to **Default / Website** (not Store View).
 |---|---|---|
 | Enabled | No | Enable Cloudflare FPC cache management. |
 | Zone ID | -- | Cloudflare Zone ID from the dashboard Overview page. |
-| Account ID | -- | Cloudflare Account ID from the dashboard Overview page. |
-| API Token | -- | Cloudflare API Token with **Zone.Cache Purge** permission. Stored encrypted. |
+| Account ID | -- | Cloudflare Account ID from the dashboard Overview page. Used when deploying the worker from Magento Admin. |
+| API Token | -- | Cloudflare API Token with **Zone.Cache Purge** permission. To deploy the worker from Magento Admin, also grant **Account.Workers Scripts Edit**. Stored encrypted. |
 | Debug | No | When enabled, logs API requests and responses to `var/log/srcloudflarecache.log`. |
+
+### Worker Deployment Settings
+
+| Field | Default | Description |
+|---|---|---|
+| Worker Name | -- | Existing Cloudflare Worker script name that should receive updates from Magento Admin. |
+| Deploy Bundled Worker | -- | Uploads `CFWorker/FPC-worker.js` to Cloudflare and syncs the worker bindings below. |
+| Debug Mode | No | Sets the worker `DEBUG` binding for diagnostic `X-FPC-*` headers. |
+| Default TTL Override (seconds) | Magento FPC TTL | Sets the worker `DEFAULT_TTL` binding. Leave empty to use Magento's global FPC TTL. |
+| Hit-For-Pass TTL (seconds) | `120` | Sets the worker `HFP_TTL` binding. |
+| Admin Path | `admin` | Sets the worker `ADMIN_PATH` binding. |
+| Bypass Paths | -- | Sets the worker `BYPASS_PATHS` binding as a comma-separated list. |
 
 <img width="1246" height="804" alt="Screenshot 2026-04-01 at 23 53 08" src="https://github.com/user-attachments/assets/f9df2e3f-adbb-43f2-b2b7-c5536f57d79f" />
 
@@ -169,6 +181,18 @@ When image optimization is enabled, the module rewrites image URLs to route thro
 The module includes a Cloudflare Worker script (`CFWorker/FPC-worker.js`) that must be deployed to your Cloudflare account for the FPC feature to work.
 
 ### Deployment Steps
+
+### Deploy from Magento Admin
+
+After the initial worker and route exist in Cloudflare, you can update the bundled worker directly from Magento:
+
+1. Configure **Worker Name** under **Stores > Configuration > Studio Raz > Cloudflare > Worker Deployment**.
+2. Adjust the worker bindings if needed.
+3. Click **Deploy FPC Worker**.
+
+Magento uploads the bundled `CFWorker/FPC-worker.js` file and syncs the configured worker bindings in one step.
+
+### Manual Deployment Steps
 
 1. Log in to the [Cloudflare dashboard](https://dash.cloudflare.com/).
 2. Navigate to **Workers & Pages > Create Application > Create Worker**.

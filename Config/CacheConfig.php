@@ -22,8 +22,10 @@ class CacheConfig extends \SR\Gateway\Model\Config\Config
     public const CLOUDFLARE = 3;
 
     private const KEY_ZONE_ID = 'zone_id';
+    private const KEY_ACCOUNT_ID = 'account_id';
     private const KEY_API_TOKEN = 'api_token';
     private const KEY_API_URL = 'api_url';
+    private const KEY_WORKER_NAME = 'worker_name';
 
     private ?string $siteTag = null;
 
@@ -67,9 +69,19 @@ class CacheConfig extends \SR\Gateway\Model\Config\Config
         return $this->getValue(self::KEY_API_TOKEN, self::DEFAULT_PATH_GROUP);
     }
 
+    public function getAccountId(): ?string
+    {
+        return $this->getValue(self::KEY_ACCOUNT_ID, self::DEFAULT_PATH_GROUP);
+    }
+
     public function getApiUrl(): ?string
     {
         return $this->getValue(self::KEY_API_URL, self::DEFAULT_PATH_GROUP);
+    }
+
+    public function getWorkerName(): ?string
+    {
+        return $this->getValue(self::KEY_WORKER_NAME, self::WORKER_PATH_GROUP);
     }
 
     public function isDebugEnabled(): bool
