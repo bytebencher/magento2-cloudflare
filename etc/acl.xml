@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright © 2022 Studio Raz. All rights reserved.
+  ~ Copyright © 2022 ByteBencher. All rights reserved.
   ~ See LICENCE file for license details.
   -->
 
@@ -8,9 +8,9 @@
     <acl>
         <resources>
             <resource id="Magento_Backend::admin">
-                <resource id="SR_Base::srbase">
-                    <resource id="SR_Cloudflare::srcloudflare" title="Cloudflare" translate="title" sortOrder="560">
-                        <resource id="SR_Cloudflare::srcloudflare_settings" title="Settings" translate="title" sortOrder="100" />
+                <resource id="Magento_Backend::stores">
+                    <resource id="ByteBencher_Cloudflare::bytebencher_cloudflare" title="Cloudflare" translate="title" sortOrder="560">
+                        <resource id="ByteBencher_Cloudflare::bytebencher_cloudflare_settings" title="Settings" translate="title" sortOrder="100"/>
                     </resource>
                 </resource>
             </resource>

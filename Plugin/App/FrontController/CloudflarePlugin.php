@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Plugin\App\FrontController;
+namespace ByteBencher\Cloudflare\Plugin\App\FrontController;
 
 use Magento\Framework\App\FrontControllerInterface;
 use Magento\Framework\App\PageCache\Version;
@@ -10,7 +10,7 @@ use Magento\Framework\App\Response\Http as ResponseHttp;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\App\State as AppState;
 use Magento\Framework\Controller\ResultInterface;
-use SR\Cloudflare\Config\CacheConfig;
+use ByteBencher\Cloudflare\Config\CacheConfig;
 
 class CloudflarePlugin
 {

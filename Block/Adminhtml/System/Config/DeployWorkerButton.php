@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Block\Adminhtml\System\Config;
+namespace ByteBencher\Cloudflare\Block\Adminhtml\System\Config;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\ButtonFactory;
@@ -12,7 +12,7 @@ use Magento\Framework\Data\Form\FormKey;
 
 class DeployWorkerButton extends Field
 {
-    protected $_template = 'SR_Cloudflare::system/config/deploy_worker_button.phtml';
+    protected $_template = 'ByteBencher_Cloudflare::system/config/deploy_worker_button.phtml';
 
     public function __construct(
         Context $context,
@@ -25,18 +25,18 @@ class DeployWorkerButton extends Field
 
     public function getActionUrl(): string
     {
-        return $this->getUrl('srcloudflare/worker/deploy', ['_current' => true]);
+        return $this->getUrl('bytebencher_cloudflare/worker/deploy', ['_current' => true]);
     }
 
     public function getButtonHtml(): string
     {
         return $this->buttonFactory->create([
             'data' => [
-                'id' => 'srcloudflare_deploy_worker',
+                'id' => 'bytebencher_cloudflare_deploy_worker',
                 'label' => __('Deploy FPC Worker'),
                 'class' => 'secondary',
                 'type' => 'button',
-                'onclick' => 'srCloudflareDeployWorker(); return false;',
+                'onclick' => 'byteBencherCloudflareDeployWorker(this); return false;',
             ],
         ])->toHtml();
     }

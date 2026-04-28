@@ -1,19 +1,19 @@
 <?php
 /*
- * Copyright © 2022 Studio Raz. All rights reserved.
+ * Copyright © 2022 ByteBencher. All rights reserved.
  * See LICENCE file for license details.
  */
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Plugin\Catalog\Asset\Image;
+namespace ByteBencher\Cloudflare\Plugin\Catalog\Asset\Image;
 
 use Magento\Catalog\Helper\ImageFactory as CatalogImageHelperFactory;
 use Magento\Catalog\Model\Product\Media\Config as ProductMediaConfig;
 use Magento\Catalog\Model\View\Asset\Image as CatalogImageAsset;
 use Magento\Catalog\Model\View\Asset\Image\ContextFactory as CatalogImageAssetContextFactory;
-use SR\Cloudflare\Config\ModuleState;
-use SR\Cloudflare\Helper\CloudflareUrlFormatHelper;
+use ByteBencher\Cloudflare\Config\ModuleState;
+use ByteBencher\Cloudflare\Helper\CloudflareUrlFormatHelper;
 
 class RebuildImageSrcUrlPlugin
 {

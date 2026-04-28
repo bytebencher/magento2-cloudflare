@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Observer;
+namespace ByteBencher\Cloudflare\Observer;
 
 use Magento\Framework\App\Cache\Tag\Resolver;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use SR\Cloudflare\Model\CloudflareClient;
-use SR\Cloudflare\Config\CacheConfig;
+use ByteBencher\Cloudflare\Model\CloudflareClient;
+use ByteBencher\Cloudflare\Config\CacheConfig;
 
 class PurgeByTags implements ObserverInterface
 {

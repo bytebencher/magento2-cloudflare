@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Controller\Adminhtml\Worker;
+namespace ByteBencher\Cloudflare\Controller\Adminhtml\Worker;
 
 use Magento\Backend\App\Action;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Exception\LocalizedException;
-use SR\Cloudflare\Model\Worker\Deployer;
+use ByteBencher\Cloudflare\Model\Worker\Deployer;
 
 class Deploy extends Action implements HttpPostActionInterface
 {
-    public const ADMIN_RESOURCE = 'SR_Cloudflare::srcloudflare_settings';
+    public const ADMIN_RESOURCE = 'ByteBencher_Cloudflare::bytebencher_cloudflare_settings';
 
     public function __construct(
         Action\Context $context,
@@ -24,9 +24,11 @@ class Deploy extends Action implements HttpPostActionInterface
     public function execute(): Redirect
     {
         $resultRedirect = $this->resultRedirectFactory->create();
+        $websiteCode = (string) $this->getRequest()->getParam('website', '');
+        $storeCode = (string) $this->getRequest()->getParam('store', '');
 
         try {
-            $workerName = $this->deployer->deploy();
+            $workerName = $this->deployer->deploy($websiteCode);
             $this->messageManager->addSuccessMessage(
                 __('Cloudflare worker "%1" was deployed successfully.', $workerName)
             );
@@ -36,6 +38,13 @@ class Deploy extends Action implements HttpPostActionInterface
             $this->messageManager->addExceptionMessage($exception, __('Cloudflare worker deployment failed.'));
         }
 
-        return $resultRedirect->setRefererUrl();
+        return $resultRedirect->setPath(
+            'adminhtml/system_config/edit',
+            array_filter([
+                'section' => 'bytebencher_cloudflare',
+                'website' => $websiteCode,
+                'store' => $storeCode,
+            ], static fn ($value): bool => $value !== '')
+        );
     }
 }

@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright © 2022 Studio Raz. All rights reserved.
+  ~ Copyright © 2022 ByteBencher. All rights reserved.
   ~ See LICENCE file for license details.
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
-        <add id="SR_Cloudflare::srcloudflare"
-             parent="SR_Base::srbase"
-             module="SR_Cloudflare"
+        <add id="ByteBencher_Cloudflare::bytebencher_cloudflare"
+             parent="Magento_Backend::stores"
+             module="ByteBencher_Cloudflare"
              title="Cloudflare"
              sortOrder="580"
-             resource="SR_Cloudflare::srcloudflare"/>
+             resource="ByteBencher_Cloudflare::bytebencher_cloudflare"/>
 
-        <add id="SR_Cloudflare::srcloudflare_settings"
+        <add id="ByteBencher_Cloudflare::bytebencher_cloudflare_settings"
              title="Settings"
              sortOrder="1000"
-             module="SR_Cloudflare"
-             parent="SR_Cloudflare::srcloudflare"
-             action="adminhtml/system_config/edit/section/srcloudflare/"
-             resource="SR_Cloudflare::srcloudflare_settings"/>
+             module="ByteBencher_Cloudflare"
+             parent="ByteBencher_Cloudflare::bytebencher_cloudflare"
+             action="adminhtml/system_config/edit/section/bytebencher_cloudflare/"
+             resource="ByteBencher_Cloudflare::bytebencher_cloudflare_settings"/>
     </menu>
 </config>

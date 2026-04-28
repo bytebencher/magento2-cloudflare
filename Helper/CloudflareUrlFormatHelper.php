@@ -1,18 +1,18 @@
 <?php
 /*
- * Copyright © 2022 Studio Raz. All rights reserved.
+ * Copyright © 2022 ByteBencher. All rights reserved.
  * See LICENCE file for license details.
  */
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Helper;
+namespace ByteBencher\Cloudflare\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use SR\Cloudflare\Config\Config;
-use SR\Cloudflare\Config\ModuleState;
-use SR\Cloudflare\Model\System\Config\Source\ImageFit;
+use ByteBencher\Cloudflare\Config\Config;
+use ByteBencher\Cloudflare\Config\ModuleState;
+use ByteBencher\Cloudflare\Model\System\Config\Source\ImageFit;
 
 class CloudflareUrlFormatHelper extends AbstractHelper
 {

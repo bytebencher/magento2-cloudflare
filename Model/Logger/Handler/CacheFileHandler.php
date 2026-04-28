@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Model\Logger\Handler;
+namespace ByteBencher\Cloudflare\Model\Logger\Handler;
 
 use Magento\Framework\Filesystem\DriverInterface;
 use Magento\Framework\Logger\Handler\Debug as LoggerDebugHandler;

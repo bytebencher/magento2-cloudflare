@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright © 2022 Studio Raz. All rights reserved.
+  ~ Copyright © 2022 ByteBencher. All rights reserved.
   ~ See LICENCE file for license details.
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="SR_Cloudflare" setup_version="0.0.1">
+    <module name="ByteBencher_Cloudflare">
         <sequence>
-            <module name="SR_Base"/>
             <module name="Magento_PageCache"/>
             <module name="SR_Gateway"/>
         </sequence>

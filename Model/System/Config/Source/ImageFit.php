@@ -1,12 +1,12 @@
 <?php
 /*
- * Copyright © 2022 Studio Raz. All rights reserved.
+ * Copyright © 2022 ByteBencher. All rights reserved.
  * See LICENCE file for license details.
  */
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Model\System\Config\Source;
+namespace ByteBencher\Cloudflare\Model\System\Config\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Framework\Phrase;

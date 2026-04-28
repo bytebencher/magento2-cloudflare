@@ -1,5 +1,5 @@
 {
-    "name": "studioraz/magento2-cloudflare",
+    "name": "bytebencher/magento2-cloudflare",
     "description": "Magento 2 module",
     "type": "magento2-module",
     "prefer-stable": true,
@@ -15,17 +15,17 @@
             "registration.php"
         ],
         "psr-4": {
-            "SR\\Cloudflare\\": ""
+            "ByteBencher\\Cloudflare\\": ""
         }
     },
     "support": {
-        "email": "support@studioraz.co.il"
+        "issues": "https://github.com/bytebencher/magento2-cloudflare/issues",
+        "source": "https://github.com/bytebencher/magento2-cloudflare"
     },
     "authors": [
         {
-            "name": "Studio Raz",
-            "email": "info@studioraz.co.il",
-            "homepage": "https://www.studio-raz.com",
+            "name": "ByteBencher",
+            "homepage": "https://github.com/bytebencher",
             "role": "Developer"
         }
     ]

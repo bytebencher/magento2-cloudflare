@@ -1,18 +1,18 @@
 <?php
 /*
- * Copyright © 2022 Studio Raz. All rights reserved.
+ * Copyright © 2022 ByteBencher. All rights reserved.
  * See LICENCE file for license details.
  */
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Plugin;
+namespace ByteBencher\Cloudflare\Plugin;
 
 use Magento\Cms\Model\Template\Filter as CmsTemplateFilter;
 use Magento\Theme\Block\Html\Header\Logo;
 use Magento\Widget\Block\BlockInterface as WidgetBlockInterface;
-use SR\Cloudflare\Config\ModuleState;
-use SR\Cloudflare\Helper\CloudflareUrlFormatHelper;
+use ByteBencher\Cloudflare\Config\ModuleState;
+use ByteBencher\Cloudflare\Helper\CloudflareUrlFormatHelper;
 
 class RebuildImageSrcUrlPlugin
 {

@@ -2,7 +2,7 @@
 
 Use Cloudflare as your Magento 2 full-page cache and image optimization CDN.
 
-[![Latest Version](https://img.shields.io/packagist/v/studioraz/magento2-cloudflare.svg)](https://packagist.org/packages/studioraz/magento2-cloudflare)
+[![Latest Version](https://img.shields.io/packagist/v/bytebencher/magento2-cloudflare.svg)](https://packagist.org/packages/bytebencher/magento2-cloudflare)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ---
@@ -38,7 +38,7 @@ This module replaces all of that with [Cloudflare](https://www.cloudflare.com/):
 
 2. **Image Optimization** -- automatically rewrite image URLs to Cloudflare's `/cdn-cgi/image/` endpoint. Images are resized, converted to modern formats (WebP, AVIF), and served from the edge -- no local image cache needed.
 
-Developed and maintained by [Studio Raz](https://studioraz.co.il/) and released as open-source for the Magento community.
+Developed and maintained by [ByteBencher](https://github.com/bytebencher) and released as open-source for the Magento community.
 
 ---
 
@@ -86,12 +86,12 @@ Developed and maintained by [Studio Raz](https://studioraz.co.il/) and released 
 
 1. Require the module via Composer:
    ```bash
-   composer require studioraz/magento2-cloudflare
+   composer require bytebencher/magento2-cloudflare
    ```
 
 2. Enable the module and run setup:
    ```bash
-   bin/magento module:enable SR_Cloudflare
+   bin/magento module:enable ByteBencher_Cloudflare
    bin/magento setup:upgrade
    bin/magento setup:di:compile
    bin/magento cache:clean
@@ -103,7 +103,7 @@ Developed and maintained by [Studio Raz](https://studioraz.co.il/) and released 
 
 All settings are available in the Magento Admin under:
 
-**Stores > Configuration > Studio Raz > Cloudflare**
+**Stores > Configuration > ByteBencher > Cloudflare**
 
 ### General Settings (Image Optimization)
 
@@ -134,7 +134,7 @@ These settings are scoped to **Default / Website** (not Store View).
 | Zone ID | -- | Cloudflare Zone ID from the dashboard Overview page. |
 | Account ID | -- | Cloudflare Account ID from the dashboard Overview page. Used when deploying the worker from Magento Admin. |
 | API Token | -- | Cloudflare API Token with **Zone.Cache Purge** permission. To deploy the worker from Magento Admin, also grant **Account.Workers Scripts Edit**. Stored encrypted. |
-| Debug | No | When enabled, logs API requests and responses to `var/log/srcloudflarecache.log`. |
+| Debug | No | When enabled, logs API requests and responses to `var/log/bytebencher_cloudflare_cache.log`. |
 
 ### Worker Deployment Settings
 
@@ -184,11 +184,12 @@ The module includes a Cloudflare Worker script (`CFWorker/FPC-worker.js`) that m
 
 ### Deploy from Magento Admin
 
-After the initial worker and route exist in Cloudflare, you can update the bundled worker directly from Magento:
+Magento can create the worker script on the first deploy and update it on later releases. The only remaining one-time manual setup is adding the Worker route in Cloudflare:
 
-1. Configure **Worker Name** under **Stores > Configuration > Studio Raz > Cloudflare > Worker Deployment**.
+1. Configure **Worker Name** under **Stores > Configuration > ByteBencher > Cloudflare > Worker Deployment**.
 2. Adjust the worker bindings if needed.
 3. Click **Deploy FPC Worker**.
+4. In Cloudflare, add a **Route** that maps your Magento store domain to this worker (for example `example.com/*`) if you have not already done so.
 
 Magento uploads the bundled `CFWorker/FPC-worker.js` file and syncs the configured worker bindings in one step.
 
@@ -288,7 +289,7 @@ When enabled, Magento's local image cache generation is skipped entirely. Images
 - Ensure **Cache > Enabled** is set to **Yes**.
 - Ensure **Zone ID** and **API Token** are correctly set and that the API Token has **Zone.Cache Purge** permission.
 - Confirm that Cloudflare is selected as the caching application in **Stores > Configuration > Advanced > System > Full Page Cache > Caching Application**.
-- Enable **Cache > Debug** and inspect `var/log/srcloudflarecache.log` for API errors.
+- Enable **Cache > Debug** and inspect `var/log/bytebencher_cloudflare_cache.log` for API errors.
 
 **Pages are always served from origin (no CDN HIT)**
 

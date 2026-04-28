@@ -2,13 +2,13 @@
  * Cloudflare FPC Worker — Exact Varnish Mirror
  *
  * Replicates Magento 2 Varnish VCL behavior (varnish7.vcl) using CF CDN cache.
- * No R2, no KV. Purge handled by SR_CloudflareCache PHP module via CF API.
+ * No R2, no KV. Purge handled by ByteBencher_CloudflareCache PHP module via CF API.
  *
  * Caching strategy:
  *   fetch() with cacheEverything + cacheTtlByStatus — forces CDN caching even when
  *   origin sends Set-Cookie (Magento always sends PHPSESSID/form_key). CF strips
  *   Set-Cookie from the cached copy automatically. Cache-Tag headers are indexed
- *   through the CDN pipeline, enabling purge-by-tag via SR_CloudflareCache module.
+ *   through the CDN pipeline, enabling purge-by-tag via ByteBencher_CloudflareCache module.
  *   We do NOT use cache.put() for cacheable responses because it overwrites the
  *   fetch()-cached entry and destroys CF's Cache-Tag index.
  *

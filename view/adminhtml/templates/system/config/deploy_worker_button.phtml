@@ -1,14 +1,21 @@
 <?php
 /**
- * @var \SR\Cloudflare\Block\Adminhtml\System\Config\DeployWorkerButton $block
+ * @var \ByteBencher\Cloudflare\Block\Adminhtml\System\Config\DeployWorkerButton $block
  * @var \Magento\Framework\Escaper $escaper
  */
 ?>
 <?= /* @noEscape */ $block->getButtonHtml() ?>
 <script>
-    function srCloudflareDeployWorker() {
+    function byteBencherCloudflareDeployWorker(button) {
         const form = document.createElement('form');
         const formKey = document.createElement('input');
+        const originalLabel = button ? button.textContent : '';
+        const loadingLabel = '<?= $escaper->escapeJs((string) __('Deploying...')) ?>';
+
+        if (button) {
+            button.disabled = true;
+            button.textContent = loadingLabel;
+        }
 
         form.method = 'post';
         form.action = '<?= $escaper->escapeJs($block->getActionUrl()) ?>';
@@ -20,5 +27,12 @@
         form.appendChild(formKey);
         document.body.appendChild(form);
         form.submit();
+
+        window.setTimeout(function () {
+            if (button) {
+                button.disabled = false;
+                button.textContent = originalLabel;
+            }
+        }, 10000);
     }
 </script>
