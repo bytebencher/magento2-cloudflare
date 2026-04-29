@@ -181,11 +181,11 @@ class Deployer
                 ->setBody($payload)
                 ->setClientConfig([
                     'timeout' => self::REQUEST_TIMEOUT,
-                    'protocols' => CURLPROTO_HTTPS,
                     'verifypeer' => true,
                     'verifyhost' => 2,
                     ClientConfigBuilder::PARAM_CURL_EXTRA_OPTIONS => [
                         CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
+                        CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
                     ],
                 ])
                 ->shouldEncode(false)
