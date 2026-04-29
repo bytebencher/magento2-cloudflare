@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace ByteBencher\Cloudflare\Model\Worker;
 
+use Laminas\Http\Request as HttpRequest;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Filesystem\Driver\File;
 use Magento\Framework\Module\Dir\Reader;
 use ByteBencher\Cloudflare\Config\CacheConfig;
+use SR\Gateway\Api\Http\Client\ClientInterface;
+use SR\Gateway\Model\Http\TransferBuilderFactory;
+use SR\Gateway\Model\Request\ClientConfigBuilder;
 
 class Deployer
 {
@@ -18,11 +22,14 @@ class Deployer
     private const REQUEST_TIMEOUT = 60;
     private const SCRIPT_PART_NAME = 'main.js';
     private const SCRIPT_PATH = '/CFWorker/FPC-worker.js';
+    private const SCRIPT_CONTENT_TYPE = 'application/javascript';
 
     public function __construct(
         private readonly CacheConfig $config,
         private readonly Reader $moduleDirReader,
-        private readonly File $fileDriver
+        private readonly File $fileDriver,
+        private readonly ClientInterface $restClient,
+        private readonly TransferBuilderFactory $transferBuilderFactory
     ) {
     }
 
@@ -46,10 +53,6 @@ class Deployer
 
     private function assertConfiguration(?string $websiteCode): void
     {
-        if (!function_exists('curl_init')) {
-            throw new LocalizedException(__('The cURL PHP extension is required to deploy the Cloudflare worker.'));
-        }
-
         if (!$this->config->isActiveForWebsite($websiteCode)) {
             throw new LocalizedException(__('Enable Cloudflare cache before deploying the worker.'));
         }
@@ -159,68 +162,106 @@ class Deployer
 
     private function uploadWorker(string $workerName, string $scriptPath, ?string $websiteCode): array
     {
-        $payload = [
-            'metadata' => $this->buildMetadata($websiteCode),
-            self::SCRIPT_PART_NAME => new \CURLFile($scriptPath, 'application/javascript', self::SCRIPT_PART_NAME),
-        ];
-
         $url = sprintf(
             self::API_URL_PATTERN,
             rawurlencode((string) $this->config->getAccountIdForWebsite($websiteCode)),
             rawurlencode($workerName)
         );
-
-        $curlHandle = curl_init($url);
-        if ($curlHandle === false) {
-            throw new LocalizedException(__('Unable to initialize the Cloudflare worker deployment request.'));
-        }
-
-        curl_setopt_array($curlHandle, [
-            CURLOPT_CUSTOMREQUEST => 'PUT',
-            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
-            CURLOPT_HTTPHEADER => [
-                'Authorization: Bearer ' . trim((string) $this->config->getApiTokenForWebsite($websiteCode)),
-                'Accept: application/json',
-            ],
-            CURLOPT_POSTFIELDS => $payload,
-            CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_TIMEOUT => self::REQUEST_TIMEOUT,
-        ]);
-
-        $rawResponse = curl_exec($curlHandle);
-        $statusCode = (int) curl_getinfo($curlHandle, CURLINFO_RESPONSE_CODE);
-        $errorMessage = curl_error($curlHandle);
-        curl_close($curlHandle);
-
-        if ($rawResponse === false) {
-            throw new LocalizedException(
-                __('Cloudflare worker deployment request failed: %1', $errorMessage ?: __('Unknown cURL error.'))
-            );
-        }
+        [$payload, $boundary] = $this->buildMultipartPayload($scriptPath, $websiteCode);
 
         try {
-            $response = json_decode($rawResponse, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
+            $transfer = $this->transferBuilderFactory->create()
+                ->setMethod(HttpRequest::METHOD_PUT)
+                ->setUri($url)
+                ->setHeaders([
+                    'Authorization' => 'Bearer ' . trim((string) $this->config->getApiTokenForWebsite($websiteCode)),
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'multipart/form-data; boundary=' . $boundary,
+                ])
+                ->setBody($payload)
+                ->setClientConfig([
+                    'timeout' => self::REQUEST_TIMEOUT,
+                    'protocols' => CURLPROTO_HTTPS,
+                    'verifypeer' => true,
+                    'verifyhost' => 2,
+                    ClientConfigBuilder::PARAM_CURL_EXTRA_OPTIONS => [
+                        CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
+                    ],
+                ])
+                ->shouldEncode(false)
+                ->build();
+
+            $result = $this->restClient->placeRequest($transfer);
+        } catch (\Exception $exception) {
             throw new LocalizedException(
-                __('Cloudflare worker deployment returned an unexpected response (HTTP %1).', $statusCode)
+                __('Cloudflare worker deployment request failed: %1', $exception->getMessage()),
+                $exception
             );
         }
 
+        $response = $result['object'] ?? null;
         if (!is_array($response)) {
             throw new LocalizedException(
-                __('Cloudflare worker deployment returned an unexpected response (HTTP %1).', $statusCode)
-            );
-        }
-
-        if ($statusCode < 200 || $statusCode >= 300) {
-            throw new LocalizedException(
-                __('Cloudflare worker deployment failed: %1', $this->extractErrorMessage($response, $statusCode))
+                __('Cloudflare worker deployment returned an unexpected response.')
             );
         }
 
         return $response;
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function buildMultipartPayload(string $scriptPath, ?string $websiteCode): array
+    {
+        try {
+            $scriptContents = $this->fileDriver->fileGetContents($scriptPath);
+            $boundary = '--------------------------' . bin2hex(random_bytes(12));
+        } catch (\Throwable $exception) {
+            throw new LocalizedException(
+                __('Unable to prepare the bundled Cloudflare worker for upload.'),
+                $exception
+            );
+        }
+
+        $parts = [
+            $this->buildMultipartField($boundary, 'metadata', $this->buildMetadata($websiteCode)),
+            $this->buildMultipartFile(
+                $boundary,
+                self::SCRIPT_PART_NAME,
+                self::SCRIPT_PART_NAME,
+                self::SCRIPT_CONTENT_TYPE,
+                $scriptContents
+            ),
+            '--' . $boundary . '--',
+        ];
+
+        return [implode("\r\n", $parts) . "\r\n", $boundary];
+    }
+
+    private function buildMultipartField(string $boundary, string $name, string $value): string
+    {
+        return implode("\r\n", [
+            '--' . $boundary,
+            sprintf('Content-Disposition: form-data; name="%s"', $name),
+            '',
+            $value,
+        ]);
+    }
+
+    private function buildMultipartFile(
+        string $boundary,
+        string $name,
+        string $filename,
+        string $contentType,
+        string $contents
+    ): string {
+        return implode("\r\n", [
+            '--' . $boundary,
+            sprintf('Content-Disposition: form-data; name="%s"; filename="%s"', $name, $filename),
+            'Content-Type: ' . $contentType,
+            '',
+            $contents,
+        ]);
     }
 }

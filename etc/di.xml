@@ -73,6 +73,12 @@
         </arguments>
     </type>
 
+    <type name="ByteBencher\Cloudflare\Model\Worker\Deployer">
+        <arguments>
+            <argument name="restClient" xsi:type="object">ByteBencherCloudflareCacheRestClient</argument>
+        </arguments>
+    </type>
+
     <!-- Observer -->
     <type name="ByteBencher\Cloudflare\Observer\PurgeByTags">
         <arguments>
