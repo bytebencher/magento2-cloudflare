@@ -8,7 +8,7 @@
         "php": "^8.1",
         "magento/framework": "^103.0",
         "studioraz/magento2-base": "^1.5",
-        "studioraz/magento2-gateway": "^2.7"
+        "bytebencher/magento2-gateway": "^2.7"
     },
     "autoload": {
         "files": [

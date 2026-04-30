@@ -7,7 +7,7 @@
     <module name="ByteBencher_Cloudflare">
         <sequence>
             <module name="Magento_PageCache"/>
-            <module name="SR_Gateway"/>
+            <module name="ByteBencher_Gateway"/>
         </sequence>
     </module>
 </config>

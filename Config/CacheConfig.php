@@ -11,7 +11,7 @@ use Magento\PageCache\Model\Config as PageCacheConfig;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
-class CacheConfig extends \SR\Gateway\Model\Config\Config
+class CacheConfig extends \ByteBencher\Gateway\Model\Config\Config
 {
     public const EXT_ALIAS = 'bytebencher_cloudflare';
     public const DEFAULT_PATH_GROUP = 'cache';

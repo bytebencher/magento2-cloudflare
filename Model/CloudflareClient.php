@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace ByteBencher\Cloudflare\Model;
 
 use Laminas\Http\Request as HttpRequest;
-use SR\Gateway\Api\Http\Client\ClientInterface;
-use SR\Gateway\Api\LoggerInterface;
-use SR\Gateway\Model\Http\TransferBuilderFactory;
+use ByteBencher\Gateway\Api\Http\Client\ClientInterface;
+use ByteBencher\Gateway\Api\LoggerInterface;
+use ByteBencher\Gateway\Model\Http\TransferBuilderFactory;
 
 class CloudflareClient
 {

@@ -33,14 +33,14 @@
     </type>
 
     <!-- Logger -->
-    <virtualType name="ByteBencherCloudflareCacheMainLogger" type="SR\Gateway\Model\Logger">
+    <virtualType name="ByteBencherCloudflareCacheMainLogger" type="ByteBencher\Gateway\Model\Logger">
         <arguments>
             <argument name="logger" xsi:type="object">ByteBencherCloudflareCacheBaseLogger</argument>
             <argument name="config" xsi:type="object">ByteBencherCloudflareCacheConfig</argument>
         </arguments>
     </virtualType>
 
-    <virtualType name="ByteBencherCloudflareCacheBaseLogger" type="SR\Gateway\Model\Logger\Logger">
+    <virtualType name="ByteBencherCloudflareCacheBaseLogger" type="ByteBencher\Gateway\Model\Logger\Logger">
         <arguments>
             <argument name="name" xsi:type="string">bytebencher_cloudflare_cache</argument>
             <argument name="handlers" xsi:type="array">
@@ -57,10 +57,10 @@
     </virtualType>
 
     <!-- REST client -->
-    <virtualType name="ByteBencherCloudflareCacheRestClient" type="SR\Gateway\Model\Http\Client\Rest">
+    <virtualType name="ByteBencherCloudflareCacheRestClient" type="ByteBencher\Gateway\Model\Http\Client\Rest">
         <arguments>
             <argument name="logger" xsi:type="object">ByteBencherCloudflareCacheMainLogger</argument>
-            <argument name="converter" xsi:type="object">SR\Gateway\Model\Http\Client\Converter\ObjectToArrayRestConverter</argument>
+            <argument name="converter" xsi:type="object">ByteBencher\Gateway\Model\Http\Client\Converter\ObjectToArrayRestConverter</argument>
         </arguments>
     </virtualType>
 

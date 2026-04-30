@@ -9,9 +9,9 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Filesystem\Driver\File;
 use Magento\Framework\Module\Dir\Reader;
 use ByteBencher\Cloudflare\Config\CacheConfig;
-use SR\Gateway\Api\Http\Client\ClientInterface;
-use SR\Gateway\Model\Http\TransferBuilderFactory;
-use SR\Gateway\Model\Request\ClientConfigBuilder;
+use ByteBencher\Gateway\Api\Http\Client\ClientInterface;
+use ByteBencher\Gateway\Model\Http\TransferBuilderFactory;
+use ByteBencher\Gateway\Model\Request\ClientConfigBuilder;
 
 class Deployer
 {

@@ -6,8 +6,8 @@ namespace ByteBencher\Cloudflare\Model\Logger\Handler;
 
 use Magento\Framework\Filesystem\DriverInterface;
 use Magento\Framework\Logger\Handler\Debug as LoggerDebugHandler;
-use SR\Gateway\Api\Config\ConfigInterface;
-use SR\Gateway\Model\Config\Config;
+use ByteBencher\Gateway\Api\Config\ConfigInterface;
+use ByteBencher\Gateway\Model\Config\Config;
 
 /**
  * File handler that reads active/debug flags from the 'cache' config group
