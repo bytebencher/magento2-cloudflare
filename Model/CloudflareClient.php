@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Model;
+namespace ByteBencher\Cloudflare\Model;
 
 use Laminas\Http\Request as HttpRequest;
-use SR\Gateway\Api\Http\Client\ClientInterface;
-use SR\Gateway\Api\LoggerInterface;
-use SR\Gateway\Model\Http\TransferBuilderFactory;
+use ByteBencher\Gateway\Api\Http\Client\ClientInterface;
+use ByteBencher\Gateway\Api\LoggerInterface;
+use ByteBencher\Gateway\Model\Http\TransferBuilderFactory;
 
 class CloudflareClient
 {
     private const MAX_TAGS_PER_REQUEST = 30;
 
     public function __construct(
-        private readonly \SR\Cloudflare\Config\CacheConfig $config,
+        private readonly \ByteBencher\Cloudflare\Config\CacheConfig $config,
         private readonly ClientInterface                  $restClient,
         private readonly TransferBuilderFactory           $transferBuilderFactory,
         private readonly LoggerInterface                  $logger
@@ -92,7 +92,7 @@ class CloudflareClient
             $this->restClient->placeRequest($transfer);
         } catch (\Exception $e) {
             $this->logger->error(
-                'SR_Cloudflare: Purge API request failed: ' . $e->getMessage()
+                'ByteBencher_Cloudflare: Purge API request failed: ' . $e->getMessage()
             );
         }
     }

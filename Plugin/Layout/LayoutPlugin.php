@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Plugin\Layout;
+namespace ByteBencher\Cloudflare\Plugin\Layout;
 
 use Magento\Framework\App\MaintenanceMode;
 use Magento\Framework\App\ResponseInterface;
@@ -10,7 +10,7 @@ use Magento\Framework\DataObject\IdentityInterface;
 use Magento\Framework\View\Layout;
 use Magento\PageCache\Model\Config as PageCacheConfig;
 use Magento\PageCache\Model\Spi\PageCacheTagsPreprocessorInterface;
-use SR\Cloudflare\Config\CacheConfig;
+use ByteBencher\Cloudflare\Config\CacheConfig;
 
 /**
  * Set cache headers and collect cache tags for Cloudflare FPC.

@@ -1,96 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright © 2022 Studio Raz. All rights reserved.
+  ~ Copyright © 2022 ByteBencher. All rights reserved.
   ~ See LICENCE file for license details.
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
-    <virtualType name="SrCloudflareModuleState" type="SR\Cloudflare\Config\ModuleState" />
+    <virtualType name="ByteBencherCloudflareModuleState" type="ByteBencher\Cloudflare\Config\ModuleState" />
 
     <!-- Config -->
-    <virtualType name="SrCloudflareConfig" type="SR\Cloudflare\Config\Config" />
-    <virtualType name="SrCloudflareCacheConfig" type="SR\Cloudflare\Config\CacheConfig"/>
+    <virtualType name="ByteBencherCloudflareConfig" type="ByteBencher\Cloudflare\Config\Config" />
+    <virtualType name="ByteBencherCloudflareCacheConfig" type="ByteBencher\Cloudflare\Config\CacheConfig"/>
 
     <!-- FrontController Plugin -->
-    <type name="SR\Cloudflare\Plugin\App\FrontController\CloudflarePlugin">
+    <type name="ByteBencher\Cloudflare\Plugin\App\FrontController\CloudflarePlugin">
         <arguments>
-            <argument name="config" xsi:type="object">SrCloudflareCacheConfig</argument>
+            <argument name="config" xsi:type="object">ByteBencherCloudflareCacheConfig</argument>
         </arguments>
     </type>
 
     <!-- Controller/Result Plugin -->
-    <type name="SR\Cloudflare\Plugin\Controller\Result\CloudflarePlugin">
+    <type name="ByteBencher\Cloudflare\Plugin\Controller\Result\CloudflarePlugin">
         <arguments>
-            <argument name="config" xsi:type="object">SrCloudflareCacheConfig</argument>
+            <argument name="config" xsi:type="object">ByteBencherCloudflareCacheConfig</argument>
         </arguments>
     </type>
 
     <!-- Layout Plugin -->
-    <type name="SR\Cloudflare\Plugin\Layout\LayoutPlugin">
+    <type name="ByteBencher\Cloudflare\Plugin\Layout\LayoutPlugin">
         <arguments>
-            <argument name="config" xsi:type="object">SrCloudflareCacheConfig</argument>
+            <argument name="config" xsi:type="object">ByteBencherCloudflareCacheConfig</argument>
         </arguments>
     </type>
 
     <!-- Logger -->
-    <virtualType name="SrCloudflareCacheMainLogger" type="SR\Gateway\Model\Logger">
+    <virtualType name="ByteBencherCloudflareCacheMainLogger" type="ByteBencher\Gateway\Model\Logger">
         <arguments>
-            <argument name="logger" xsi:type="object">SrCloudflareCacheBaseLogger</argument>
-            <argument name="config" xsi:type="object">SrCloudflareCacheConfig</argument>
+            <argument name="logger" xsi:type="object">ByteBencherCloudflareCacheBaseLogger</argument>
+            <argument name="config" xsi:type="object">ByteBencherCloudflareCacheConfig</argument>
         </arguments>
     </virtualType>
 
-    <virtualType name="SrCloudflareCacheBaseLogger" type="SR\Gateway\Model\Logger\Logger">
+    <virtualType name="ByteBencherCloudflareCacheBaseLogger" type="ByteBencher\Gateway\Model\Logger\Logger">
         <arguments>
-            <argument name="name" xsi:type="string">srcloudflarecache</argument>
+            <argument name="name" xsi:type="string">bytebencher_cloudflare_cache</argument>
             <argument name="handlers" xsi:type="array">
-                <item name="file" xsi:type="object">SrCloudflareCacheLoggerFileHandler</item>
+                <item name="file" xsi:type="object">ByteBencherCloudflareCacheLoggerFileHandler</item>
             </argument>
         </arguments>
     </virtualType>
 
-    <virtualType name="SrCloudflareCacheLoggerFileHandler" type="SR\Cloudflare\Model\Logger\Handler\CacheFileHandler">
+    <virtualType name="ByteBencherCloudflareCacheLoggerFileHandler" type="ByteBencher\Cloudflare\Model\Logger\Handler\CacheFileHandler">
         <arguments>
-            <argument name="config" xsi:type="object">SrCloudflareCacheConfig</argument>
-            <argument name="fileName" xsi:type="string">var/log/srcloudflarecache.log</argument>
+            <argument name="config" xsi:type="object">ByteBencherCloudflareCacheConfig</argument>
+            <argument name="fileName" xsi:type="string">var/log/bytebencher_cloudflare_cache.log</argument>
         </arguments>
     </virtualType>
 
     <!-- REST client -->
-    <virtualType name="SrCloudflareCacheRestClient" type="SR\Gateway\Model\Http\Client\Rest">
+    <virtualType name="ByteBencherCloudflareCacheRestClient" type="ByteBencher\Gateway\Model\Http\Client\Rest">
         <arguments>
-            <argument name="logger" xsi:type="object">SrCloudflareCacheMainLogger</argument>
-            <argument name="converter" xsi:type="object">SR\Gateway\Model\Http\Client\Converter\ObjectToArrayRestConverter</argument>
+            <argument name="logger" xsi:type="object">ByteBencherCloudflareCacheMainLogger</argument>
+            <argument name="converter" xsi:type="object">ByteBencher\Gateway\Model\Http\Client\Converter\ObjectToArrayRestConverter</argument>
         </arguments>
     </virtualType>
 
     <!-- CloudflareClient -->
-    <type name="SR\Cloudflare\Model\CloudflareClient">
+    <type name="ByteBencher\Cloudflare\Model\CloudflareClient">
         <arguments>
-            <argument name="config" xsi:type="object">SrCloudflareCacheConfig</argument>
-            <argument name="restClient" xsi:type="object">SrCloudflareCacheRestClient</argument>
-            <argument name="logger" xsi:type="object">SrCloudflareCacheMainLogger</argument>
+            <argument name="config" xsi:type="object">ByteBencherCloudflareCacheConfig</argument>
+            <argument name="restClient" xsi:type="object">ByteBencherCloudflareCacheRestClient</argument>
+            <argument name="logger" xsi:type="object">ByteBencherCloudflareCacheMainLogger</argument>
+        </arguments>
+    </type>
+
+    <type name="ByteBencher\Cloudflare\Model\Worker\Deployer">
+        <arguments>
+            <argument name="restClient" xsi:type="object">ByteBencherCloudflareCacheRestClient</argument>
         </arguments>
     </type>
 
     <!-- Observer -->
-    <type name="SR\Cloudflare\Observer\PurgeByTags">
+    <type name="ByteBencher\Cloudflare\Observer\PurgeByTags">
         <arguments>
-            <argument name="config" xsi:type="object">SrCloudflareCacheConfig</argument>
+            <argument name="config" xsi:type="object">ByteBencherCloudflareCacheConfig</argument>
         </arguments>
     </type>
 
     <!-- FlushAllCacheObserver -->
-    <type name="SR\Cloudflare\Observer\FlushAllCacheObserver">
+    <type name="ByteBencher\Cloudflare\Observer\FlushAllCacheObserver">
         <arguments>
-            <argument name="config" xsi:type="object">SrCloudflareCacheConfig</argument>
+            <argument name="config" xsi:type="object">ByteBencherCloudflareCacheConfig</argument>
         </arguments>
     </type>
 
     <!-- Plugin -->
-    <type name="SR\Cloudflare\Plugin\AddCacheTagHeader">
+    <type name="ByteBencher\Cloudflare\Plugin\AddCacheTagHeader">
         <arguments>
-            <argument name="config" xsi:type="object">SrCloudflareCacheConfig</argument>
+            <argument name="config" xsi:type="object">ByteBencherCloudflareCacheConfig</argument>
         </arguments>
     </type>
 </config>

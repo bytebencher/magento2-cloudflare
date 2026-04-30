@@ -2,7 +2,7 @@
 
 Use Cloudflare as your Magento 2 full-page cache and image optimization CDN.
 
-[![Latest Version](https://img.shields.io/packagist/v/studioraz/magento2-cloudflare.svg)](https://packagist.org/packages/studioraz/magento2-cloudflare)
+[![Latest Version](https://img.shields.io/packagist/v/bytebencher/magento2-cloudflare.svg)](https://packagist.org/packages/bytebencher/magento2-cloudflare)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ---
@@ -38,7 +38,7 @@ This module replaces all of that with [Cloudflare](https://www.cloudflare.com/):
 
 2. **Image Optimization** -- automatically rewrite image URLs to Cloudflare's `/cdn-cgi/image/` endpoint. Images are resized, converted to modern formats (WebP, AVIF), and served from the edge -- no local image cache needed.
 
-Developed and maintained by [Studio Raz](https://studioraz.co.il/) and released as open-source for the Magento community.
+Developed and maintained by [ByteBencher](https://github.com/bytebencher) and released as open-source for the Magento community.
 
 ---
 
@@ -86,12 +86,12 @@ Developed and maintained by [Studio Raz](https://studioraz.co.il/) and released 
 
 1. Require the module via Composer:
    ```bash
-   composer require studioraz/magento2-cloudflare
+   composer require bytebencher/magento2-cloudflare
    ```
 
 2. Enable the module and run setup:
    ```bash
-   bin/magento module:enable SR_Cloudflare
+   bin/magento module:enable ByteBencher_Cloudflare
    bin/magento setup:upgrade
    bin/magento setup:di:compile
    bin/magento cache:clean
@@ -103,7 +103,7 @@ Developed and maintained by [Studio Raz](https://studioraz.co.il/) and released 
 
 All settings are available in the Magento Admin under:
 
-**Stores > Configuration > Studio Raz > Cloudflare**
+**Stores > Configuration > ByteBencher > Cloudflare**
 
 ### General Settings (Image Optimization)
 
@@ -132,9 +132,21 @@ These settings are scoped to **Default / Website** (not Store View).
 |---|---|---|
 | Enabled | No | Enable Cloudflare FPC cache management. |
 | Zone ID | -- | Cloudflare Zone ID from the dashboard Overview page. |
-| Account ID | -- | Cloudflare Account ID from the dashboard Overview page. |
-| API Token | -- | Cloudflare API Token with **Zone.Cache Purge** permission. Stored encrypted. |
-| Debug | No | When enabled, logs API requests and responses to `var/log/srcloudflarecache.log`. |
+| Account ID | -- | Cloudflare Account ID from the dashboard Overview page. Used when deploying the worker from Magento Admin. |
+| API Token | -- | Cloudflare API Token with **Zone.Cache Purge** permission. To deploy the worker from Magento Admin, also grant **Account.Workers Scripts Edit**. Stored encrypted. |
+| Debug | No | When enabled, logs API requests and responses to `var/log/bytebencher_cloudflare_cache.log`. |
+
+### Worker Deployment Settings
+
+| Field | Default | Description |
+|---|---|---|
+| Worker Name | -- | Existing Cloudflare Worker script name that should receive updates from Magento Admin. |
+| Deploy Bundled Worker | -- | Uploads `CFWorker/FPC-worker.js` to Cloudflare and syncs the worker bindings below. |
+| Debug Mode | No | Sets the worker `DEBUG` binding for diagnostic `X-FPC-*` headers. |
+| Default TTL Override (seconds) | Magento FPC TTL | Sets the worker `DEFAULT_TTL` binding. Leave empty to use Magento's global FPC TTL. |
+| Hit-For-Pass TTL (seconds) | `120` | Sets the worker `HFP_TTL` binding. |
+| Admin Path | `admin` | Sets the worker `ADMIN_PATH` binding. |
+| Bypass Paths | -- | Sets the worker `BYPASS_PATHS` binding as a comma-separated list. |
 
 <img width="1246" height="804" alt="Screenshot 2026-04-01 at 23 53 08" src="https://github.com/user-attachments/assets/f9df2e3f-adbb-43f2-b2b7-c5536f57d79f" />
 
@@ -170,10 +182,23 @@ The module includes a Cloudflare Worker script (`CFWorker/FPC-worker.js`) that m
 
 ### Deployment Steps
 
+### Deploy from Magento Admin
+
+Magento can create the worker script on the first deploy and update it on later releases. The only remaining one-time manual setup is adding the Worker route in Cloudflare:
+
+1. Configure **Worker Name** under **Stores > Configuration > ByteBencher > Cloudflare > Worker Deployment**.
+2. Adjust the worker bindings if needed. If you want the optional R2 layer, also fill in **Use R2 Cache Layer**, **R2 Bucket Name**, and **R2 Bucket Binding**.
+3. Click **Deploy FPC Worker**.
+4. In Cloudflare, add a **Route** that maps your Magento store domain to this worker (for example `example.com/*`) if you have not already done so.
+
+Magento uploads the bundled `CFWorker/FPC-worker.js` file and syncs the configured worker bindings in one step.
+
+### Manual Deployment Steps
+
 1. Log in to the [Cloudflare dashboard](https://dash.cloudflare.com/).
 2. Navigate to **Workers & Pages > Create Application > Create Worker**.
 3. Paste or upload the contents of `CFWorker/FPC-worker.js`.
-4. Set up **Environment Variables** if needed (see below).
+4. Set up **Environment Variables** if needed (see below). If you use R2, also add an **R2 bucket binding** whose variable name matches `R2_BUCKET_BINDING`.
 5. Add a **Route** that maps your Magento store domain to this worker (e.g., `example.com/*`).
 
 ### Worker Environment Variables
@@ -187,10 +212,29 @@ Set these in the Cloudflare Worker **Settings > Variables** panel:
 | `HFP_TTL` | Number | TTL in seconds for hit-for-pass markers. Default: `120`. |
 | `ADMIN_PATH` | String | Admin URL segment to bypass. Default: `admin`. |
 | `BYPASS_PATHS` | String | Comma-separated additional paths to bypass (e.g. `/api,/rest`). |
+| `USE_R2_CACHE` | Boolean | Enables the optional R2 stale fallback layer. Default: `false`. |
+| `R2_BUCKET_BINDING` | String | Worker binding name for the R2 bucket. Default: `R2_CACHE`. |
 
 The Worker strips 50+ common marketing and tracking query parameters to improve cache hit rates. See the `FILTER_GET` constant in `CFWorker/FPC-worker.js` for the complete list.
 
 **Default bypass paths:** `/customer`, `/checkout`, `/catalogsearch`
+
+### Optional R2 Cache Layer
+
+On Cloudflare's higher plans you can add an R2 bucket as a secondary cache store for HTML responses.
+
+- The normal CDN cache remains the primary cache layer.
+- R2 stores a backup copy of cacheable GET responses.
+- The worker serves R2 only when the origin/CDN fetch fails or returns `5xx`.
+
+This is intentionally more conservative than the reference worker implementation. Our module depends on Cloudflare's tag-aware CDN cache for precise Magento purge-by-tag behavior, so we do **not** switch to KV/version-based soft purges or race R2 against every origin miss. That keeps the existing Varnish-like behavior intact while still giving you an Ultra-plan safety net during origin failures.
+
+If you deploy from Magento Admin and enable R2, Magento uploads both:
+
+- the worker variables (`USE_R2_CACHE`, `R2_BUCKET_BINDING`)
+- the actual Cloudflare Worker R2 bucket binding defined by **R2 Bucket Name**
+
+If you deploy manually in Cloudflare, create the R2 bucket binding yourself and make sure its variable name matches `R2_BUCKET_BINDING`.
 
 ### Worker Routes
 
@@ -264,7 +308,7 @@ When enabled, Magento's local image cache generation is skipped entirely. Images
 - Ensure **Cache > Enabled** is set to **Yes**.
 - Ensure **Zone ID** and **API Token** are correctly set and that the API Token has **Zone.Cache Purge** permission.
 - Confirm that Cloudflare is selected as the caching application in **Stores > Configuration > Advanced > System > Full Page Cache > Caching Application**.
-- Enable **Cache > Debug** and inspect `var/log/srcloudflarecache.log` for API errors.
+- Enable **Cache > Debug** and inspect `var/log/bytebencher_cloudflare_cache.log` for API errors.
 
 **Pages are always served from origin (no CDN HIT)**
 

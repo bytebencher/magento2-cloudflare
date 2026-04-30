@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright © 2022 Studio Raz. All rights reserved.
+  ~ Copyright © 2022 ByteBencher. All rights reserved.
   ~ See LICENCE file for license details.
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <srcloudflare>
+        <bytebencher_cloudflare>
             <general>
                 <active>0</active>
                 <image_quality>85</image_quality>
@@ -15,17 +15,19 @@
                 <active>0</active>
                 <debug>0</debug>
                 <api_url>https://api.cloudflare.com/client/v4/zones/%s/purge_cache</api_url>
-                <api_token backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+                <api_token/>
             </cache>
-
-<!--  Future implementation plan to have an option fully managing the Cloudflare Worker configuration from Magento admin, including pushing updates to the worker via API. -->
-<!--  For now, worker configuration is managed separately via Wrangler or Cloudflare dashboard. -->
-<!--            <worker>-->
-<!--                <debug>0</debug>-->
-<!--                <hfp_ttl>120</hfp_ttl>-->
-<!--                <admin_path/>-->
-<!--                <bypass_paths/>-->
-<!--            </worker>-->
-        </srcloudflare>
+            <worker>
+                <worker_name/>
+                <debug>0</debug>
+                <default_ttl/>
+                <hfp_ttl>120</hfp_ttl>
+                <admin_path>admin</admin_path>
+                <bypass_paths/>
+                <use_r2_cache>0</use_r2_cache>
+                <r2_bucket_name/>
+                <r2_bucket_binding>R2_CACHE</r2_bucket_binding>
+            </worker>
+        </bytebencher_cloudflare>
     </default>
 </config>

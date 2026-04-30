@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Plugin;
+namespace ByteBencher\Cloudflare\Plugin;
 
 use Magento\Framework\App\Response\Http;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
-use SR\Cloudflare\Config\CacheConfig;
+use ByteBencher\Cloudflare\Config\CacheConfig;
 
 class AddCacheTagHeader
 {

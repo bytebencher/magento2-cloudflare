@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Model\System\Config\Source;
+namespace ByteBencher\Cloudflare\Model\System\Config\Source;
 
 use Magento\PageCache\Model\System\Config\Source\Application;
-use SR\Cloudflare\Config\CacheConfig;
+use ByteBencher\Cloudflare\Config\CacheConfig;
 
 class ApplicationPlugin
 {

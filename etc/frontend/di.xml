@@ -1,56 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright © 2022 Studio Raz. All rights reserved.
+  ~ Copyright © 2022 ByteBencher. All rights reserved.
   ~ See LICENCE file for license details.
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <!-- ========== start: Plugin definitions ========== -->
     <!-- NOTE: to re-build image src-url into CloudFlare format  -->
     <type name="Magento\Theme\Block\Html\Header\Logo">
-        <plugin name="srcloudflare_theme_header_logo_imgsrc"
-                type="SR\Cloudflare\Plugin\RebuildImageSrcUrlPlugin"
+        <plugin name="bytebencher_cloudflare_theme_header_logo_imgsrc"
+                type="ByteBencher\Cloudflare\Plugin\RebuildImageSrcUrlPlugin"
                 sortOrder="50"
                 disabled="false" />
     </type>
 
     <type name="Magento\Cms\Model\Template\Filter">
-        <plugin name="srcloudflare_cms_template_filter_mediadirectory"
-                type="SR\Cloudflare\Plugin\RebuildImageSrcUrlPlugin"
+        <plugin name="bytebencher_cloudflare_cms_template_filter_mediadirectory"
+                type="ByteBencher\Cloudflare\Plugin\RebuildImageSrcUrlPlugin"
                 sortOrder="50"
                 disabled="false" />
     </type>
 
     <type name="Magento\Widget\Model\Template\Filter">
-        <plugin name="srcloudflare_widget_template_filter_mediadirectory"
-                type="SR\Cloudflare\Plugin\RebuildImageSrcUrlPlugin"
+        <plugin name="bytebencher_cloudflare_widget_template_filter_mediadirectory"
+                type="ByteBencher\Cloudflare\Plugin\RebuildImageSrcUrlPlugin"
                 sortOrder="50"
                 disabled="false" />
     </type>
     <type name="SR\Widgets\Block\Widget\Banners">
-        <plugin name="srcloudflare_srwidgets_widget_banners_getmedia"
-                type="SR\Cloudflare\Plugin\RebuildImageSrcUrlPlugin"
+        <plugin name="bytebencher_cloudflare_srwidgets_widget_banners_getmedia"
+                type="ByteBencher\Cloudflare\Plugin\RebuildImageSrcUrlPlugin"
                 sortOrder="50"
                 disabled="false" />
     </type>
 
     <type name="Magento\Catalog\Model\View\Asset\Image">
-        <plugin name="srcloudflare_catalog_view_asset_image_geturl"
-                type="SR\Cloudflare\Plugin\Catalog\Asset\Image\RebuildImageSrcUrlPlugin"
+        <plugin name="bytebencher_cloudflare_catalog_view_asset_image_geturl"
+                type="ByteBencher\Cloudflare\Plugin\Catalog\Asset\Image\RebuildImageSrcUrlPlugin"
                 sortOrder="50"
                 disabled="false" />
     </type>
     <type name="Magento\Catalog\Model\Product\Media\Config">
-        <plugin name="srcloudflare_catalog_product_media_config_getmediaurl"
-                type="SR\Cloudflare\Plugin\Catalog\Asset\Image\RebuildImageSrcUrlPlugin"
+        <plugin name="bytebencher_cloudflare_catalog_product_media_config_getmediaurl"
+                type="ByteBencher\Cloudflare\Plugin\Catalog\Asset\Image\RebuildImageSrcUrlPlugin"
                 sortOrder="50"
                 disabled="false" />
     </type>
 
-    <!-- plugin to prevent creating files in /pub/media/catalog/product/cache directory, in case SR_Cloudflare is active -->
+    <!-- plugin to prevent creating files in /pub/media/catalog/product/cache directory, in case ByteBencher_Cloudflare is active -->
     <!-- @see \Magento\Catalog\Model\Product\Image::isCached -->
     <type name="Magento\Catalog\Model\Product\Image">
-        <plugin name="srcloudflare_catalog_product_image_iscached"
-                type="SR\Cloudflare\Plugin\Catalog\Product\Image\IsCachedPlugin"
+        <plugin name="bytebencher_cloudflare_catalog_product_image_iscached"
+                type="ByteBencher\Cloudflare\Plugin\Catalog\Product\Image\IsCachedPlugin"
                 sortOrder="50"
                 disabled="false" />
     </type>
@@ -58,31 +58,31 @@
 
     <!-- start definitions for MirasvitLabel -->
     <type name="Mirasvit\CatalogLabel\Model\Label\Display">
-        <plugin name="srcloudflare_mst_label_label_display_getimageurl"
-                type="SR\Cloudflare\Plugin\Mirasvit\Asset\BadgeImage\RebuildImageSrcUrlPlugin"
+        <plugin name="bytebencher_cloudflare_mst_label_label_display_getimageurl"
+                type="ByteBencher\Cloudflare\Plugin\Mirasvit\Asset\BadgeImage\RebuildImageSrcUrlPlugin"
                 sortOrder="50"
                 disabled="false" />
     </type>
     <!-- end definitions for MirasvitLabel -->
 
     <type name="Magento\Framework\Controller\ResultInterface">
-        <plugin name="sr_cloudflare_add_cache_tag_header"
-                type="SR\Cloudflare\Plugin\AddCacheTagHeader"
+        <plugin name="bytebencher_cloudflare_add_cache_tag_header"
+                type="ByteBencher\Cloudflare\Plugin\AddCacheTagHeader"
                 sortOrder="-10"/>
-        <plugin name="sr_cloudflare_result_cloudflare_plugin"
-                type="SR\Cloudflare\Plugin\Controller\Result\CloudflarePlugin"
+        <plugin name="bytebencher_cloudflare_result_cloudflare_plugin"
+                type="ByteBencher\Cloudflare\Plugin\Controller\Result\CloudflarePlugin"
                 sortOrder="1"/>
     </type>
 
     <type name="Magento\Framework\App\FrontControllerInterface">
-        <plugin name="sr_cloudflare_frontcontroller_plugin"
-                type="SR\Cloudflare\Plugin\App\FrontController\CloudflarePlugin"
+        <plugin name="bytebencher_cloudflare_frontcontroller_plugin"
+                type="ByteBencher\Cloudflare\Plugin\App\FrontController\CloudflarePlugin"
                 sortOrder="1"/>
     </type>
 
     <type name="Magento\Framework\View\Layout">
-        <plugin name="sr_cloudflare_layout_plugin"
-                type="SR\Cloudflare\Plugin\Layout\LayoutPlugin"
+        <plugin name="bytebencher_cloudflare_layout_plugin"
+                type="ByteBencher\Cloudflare\Plugin\Layout\LayoutPlugin"
                 sortOrder="1"/>
     </type>
     <!-- ========== end: Plugin definitions ========== -->

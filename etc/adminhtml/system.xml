@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-~ Copyright © 2022 Studio Raz. All rights reserved.
+~ Copyright © 2022 ByteBencher. All rights reserved.
 ~ See LICENCE file for license details.
 -->
 
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <!-- section id see: \SR\Cloudflare\Config\Config::EXT_ALIAS -->
-        <section id="srcloudflare" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
+        <tab id="bytebencher" translate="label" sortOrder="350">
+            <label>ByteBencher</label>
+        </tab>
+        <!-- section id see: \ByteBencher\Cloudflare\Config\Config::EXT_ALIAS -->
+        <section id="bytebencher_cloudflare" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Cloudflare</label>
-            <tab>studioraz</tab>
-            <resource>SR_Cloudflare::srcloudflare_settings</resource>
+            <tab>bytebencher</tab>
+            <resource>ByteBencher_Cloudflare::bytebencher_cloudflare_settings</resource>
 
             <group id="general" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General</label>
@@ -27,7 +30,7 @@
 
                 <field id="image_fit" type="select" translate="label" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Image Fit</label>
-                    <source_model>SR\Cloudflare\Model\System\Config\Source\ImageFit</source_model>
+                    <source_model>ByteBencher\Cloudflare\Model\System\Config\Source\ImageFit</source_model>
                     <comment><![CDATA[Affects interpretation of <i>width</i> and <i>height</i>. All resizing modes preserve aspect ratio.<br>See <a href="https://developers.cloudflare.com/images/image-resizing/url-format/#fit" target="_blank">Cloudflare documentation</a> for more information.]]></comment>
                 </field>
             </group>
@@ -55,8 +58,7 @@
                 <field id="account_id" translate="label comment" sortOrder="25" type="text"
                        showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Account ID</label>
-                    <comment><![CDATA[Cloudflare Account ID from the dashboard Overview page.]]></comment>
-                    <validate>required-entry</validate>
+                    <comment><![CDATA[Cloudflare Account ID from the dashboard Overview page. Only required when using the <strong>Deploy FPC Worker</strong> button from Magento Admin.]]></comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>
@@ -66,7 +68,7 @@
                        showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>API Token</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                    <comment><![CDATA[Cloudflare API Token with <strong>Zone.Cache Purge</strong> permission.]]></comment>
+                    <comment><![CDATA[Cloudflare API Token with <strong>Zone.Cache Purge</strong> permission. To deploy the worker from Magento Admin, also grant <strong>Account.Workers Scripts Edit</strong>.]]></comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>
@@ -76,60 +78,93 @@
                        showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>Debug</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[When enabled, API requests and responses are written to <code>var/log/srcloudflarecache.log</code>]]></comment>
+                    <comment><![CDATA[When enabled, API requests and responses are written to <code>var/log/bytebencher_cloudflare_cache.log</code>]]></comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
 
-<!--                Future implementation plan to have an option fully managing the Cloudflare Worker configuration from Magento admin, including pushing updates to the worker via API. -->
-<!--                For now, worker configuration is managed separately via Wrangler or Cloudflare dashboard.-->
-<!--                <group id="worker" translate="label comment" type="text" sortOrder="400"-->
-<!--                       showInDefault="1" showInWebsite="1" showInStore="0">-->
-<!--                    <label>Worker Configuration</label>-->
-<!--                    <comment><![CDATA[Environment variables used by the Cloudflare FPC Worker. These values will be pushed to the worker via API.]]></comment>-->
-<!--                    <depends>-->
-<!--                        <field id="active">1</field>-->
-<!--                    </depends>-->
+            </group>
 
-<!--                    <field id="debug" translate="label comment" sortOrder="10" type="select"-->
-<!--                           showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">-->
-<!--                        <label>Debug Mode</label>-->
-<!--                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
-<!--                        <comment><![CDATA[Maps to worker env <code>DEBUG</code>. When enabled, the worker adds diagnostic response headers (X-FPC-*).]]></comment>-->
-<!--                        <config_path>srcloudflare/worker/debug</config_path>-->
-<!--                    </field>-->
+            <group id="worker" translate="label comment" type="text" sortOrder="20"
+                   showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Worker Deployment</label>
+                <comment><![CDATA[Deploy the bundled <code>CFWorker/FPC-worker.js</code> file to Cloudflare and keep its runtime variables in sync with Magento configuration.]]></comment>
+                <depends>
+                    <field id="bytebencher_cloudflare/cache/active">1</field>
+                </depends>
 
-<!--                    <field id="default_ttl" translate="label comment" sortOrder="20" type="text"-->
-<!--                           showInDefault="0" showInWebsite="1" showInStore="0">-->
-<!--                        <label>Default TTL Override (seconds)</label>-->
-<!--                        <validate>validate-zero-or-greater validate-digits</validate>-->
-<!--                        <comment><![CDATA[Maps to worker env <code>DEFAULT_TTL</code>. When set, overrides the global <strong>System &gt; Full Page Cache &gt; TTL for public content</strong> for this website. Leave empty to use the global value.]]></comment>-->
-<!--                        <config_path>srcloudflare/worker/default_ttl</config_path>-->
-<!--                    </field>-->
+                <field id="worker_name" translate="label comment" sortOrder="10" type="text"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Worker Name</label>
+                    <comment><![CDATA[Existing Cloudflare Worker script name to update (for example <code>magento-fpc</code>).]]></comment>
+                    <validate>required-entry</validate>
+                </field>
 
-<!--                    <field id="hfp_ttl" translate="label comment" sortOrder="30" type="text"-->
-<!--                           showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">-->
-<!--                        <label>Hit-For-Pass TTL (seconds)</label>-->
-<!--                        <validate>validate-zero-or-greater validate-digits</validate>-->
-<!--                        <comment><![CDATA[Maps to worker env <code>HFP_TTL</code>. TTL for hit-for-pass markers (uncacheable URL placeholders). Default: 120 (2 min).]]></comment>-->
-<!--                        <config_path>srcloudflare/worker/hfp_ttl</config_path>-->
-<!--                    </field>-->
+                <field id="deploy" translate="label comment" sortOrder="20" type="button"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Deploy Bundled Worker</label>
+                    <frontend_model>ByteBencher\Cloudflare\Block\Adminhtml\System\Config\DeployWorkerButton</frontend_model>
+                    <comment><![CDATA[Uploads the module's bundled worker file and syncs the variables configured below.]]></comment>
+                </field>
 
-<!--                    <field id="admin_path" translate="label comment" sortOrder="40" type="text"-->
-<!--                           showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">-->
-<!--                        <label>Admin Path</label>-->
-<!--                        <comment><![CDATA[Maps to worker env <code>ADMIN_PATH</code>. The admin URL segment to bypass caching. Default: admin. If admin path includes "admin" - cache bypassed, otherwise update this field.]]></comment>-->
-<!--                        <config_path>srcloudflare/worker/admin_path</config_path>-->
-<!--                    </field>-->
+                <field id="debug" translate="label comment" sortOrder="30" type="select"
+                       showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Debug Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Maps to worker binding <code>DEBUG</code>. When enabled, the worker adds diagnostic response headers (X-FPC-*).]]></comment>
+                </field>
 
-<!--                    <field id="bypass_paths" translate="label comment" sortOrder="50" type="text"-->
-<!--                           showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">-->
-<!--                        <label>Bypass Paths</label>-->
-<!--                        <comment><![CDATA[Maps to worker env <code>BYPASS_PATHS</code>. Comma-separated list of additional URL path segments that should bypass caching (e.g. <code>/api,/rest</code>).]]></comment>-->
-<!--                        <config_path>srcloudflare/worker/bypass_paths</config_path>-->
-<!--                    </field>-->
-<!--                </group>-->
+                <field id="default_ttl" translate="label comment" sortOrder="40" type="text"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Default TTL Override (seconds)</label>
+                    <validate>validate-zero-or-greater validate-digits</validate>
+                    <comment><![CDATA[Maps to worker binding <code>DEFAULT_TTL</code>. Leave empty to use Magento's global Full Page Cache TTL.]]></comment>
+                </field>
+
+                <field id="hfp_ttl" translate="label comment" sortOrder="50" type="text"
+                       showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Hit-For-Pass TTL (seconds)</label>
+                    <validate>validate-zero-or-greater validate-digits</validate>
+                    <comment><![CDATA[Maps to worker binding <code>HFP_TTL</code>. TTL for hit-for-pass markers (uncacheable URL placeholders). Default: 120.]]></comment>
+                </field>
+
+                <field id="admin_path" translate="label comment" sortOrder="60" type="text"
+                       showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Admin Path</label>
+                    <comment><![CDATA[Maps to worker binding <code>ADMIN_PATH</code>. Use the admin URL segment that should bypass caching.]]></comment>
+                </field>
+
+                <field id="bypass_paths" translate="label comment" sortOrder="70" type="text"
+                       showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Bypass Paths</label>
+                    <comment><![CDATA[Maps to worker binding <code>BYPASS_PATHS</code>. Comma-separated list of additional URL path segments that should bypass caching (for example <code>/api,/rest</code>).]]></comment>
+                </field>
+
+                <field id="use_r2_cache" translate="label comment" sortOrder="80" type="select"
+                       showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Use R2 Cache Layer</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Maps to worker binding <code>USE_R2_CACHE</code>. Enables the optional R2 stale fallback layer without changing the primary CDN cache flow.]]></comment>
+                </field>
+
+                <field id="r2_bucket_name" translate="label comment" sortOrder="90" type="text"
+                       showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>R2 Bucket Name</label>
+                    <comment><![CDATA[Cloudflare R2 bucket name used for the optional fallback cache. Required when deploying the worker from Magento Admin with R2 enabled.]]></comment>
+                    <depends>
+                        <field id="use_r2_cache">1</field>
+                    </depends>
+                </field>
+
+                <field id="r2_bucket_binding" translate="label comment" sortOrder="100" type="text"
+                       showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>R2 Bucket Binding</label>
+                    <comment><![CDATA[Maps to worker binding <code>R2_BUCKET_BINDING</code> and the deployed Worker R2 binding name. Default: <code>R2_CACHE</code>.]]></comment>
+                    <depends>
+                        <field id="use_r2_cache">1</field>
+                    </depends>
+                </field>
             </group>
         </section>
     </system>

@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Config;
+namespace ByteBencher\Cloudflare\Config;
 
 use Magento\Framework\App\Cache\StateInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\PageCache\Model\Cache\Type;
 use Magento\PageCache\Model\Config as PageCacheConfig;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
-class CacheConfig extends \SR\Gateway\Model\Config\Config
+class CacheConfig extends \ByteBencher\Gateway\Model\Config\Config
 {
-    public const EXT_ALIAS = 'srcloudflare';
+    public const EXT_ALIAS = 'bytebencher_cloudflare';
     public const DEFAULT_PATH_GROUP = 'cache';
     public const WORKER_PATH_GROUP = 'worker';
 
@@ -22,8 +23,10 @@ class CacheConfig extends \SR\Gateway\Model\Config\Config
     public const CLOUDFLARE = 3;
 
     private const KEY_ZONE_ID = 'zone_id';
+    private const KEY_ACCOUNT_ID = 'account_id';
     private const KEY_API_TOKEN = 'api_token';
     private const KEY_API_URL = 'api_url';
+    private const KEY_WORKER_NAME = 'worker_name';
 
     private ?string $siteTag = null;
 
@@ -52,24 +55,59 @@ class CacheConfig extends \SR\Gateway\Model\Config\Config
         return $this->cacheState->isEnabled(Type::TYPE_IDENTIFIER);
     }
 
-    public function isActive(): bool
+    public function isActive($storeId = null): bool
     {
-        return (bool) $this->getValue(self::KEY_CONFIG_ACTIVE, self::DEFAULT_PATH_GROUP);
+        return (bool) $this->getValue(self::KEY_CONFIG_ACTIVE, self::DEFAULT_PATH_GROUP, $storeId);
     }
 
-    public function getZoneId(): ?string
+    public function isActiveForWebsite(?string $websiteCode = null): bool
     {
-        return $this->getValue(self::KEY_ZONE_ID, self::DEFAULT_PATH_GROUP);
+        return (bool) $this->getWebsiteScopedValue(self::KEY_CONFIG_ACTIVE, self::DEFAULT_PATH_GROUP, $websiteCode);
     }
 
-    public function getApiToken(): ?string
+    public function getZoneId($storeId = null): ?string
     {
-        return $this->getValue(self::KEY_API_TOKEN, self::DEFAULT_PATH_GROUP);
+        return $this->getValue(self::KEY_ZONE_ID, self::DEFAULT_PATH_GROUP, $storeId);
+    }
+
+    public function getZoneIdForWebsite(?string $websiteCode = null): ?string
+    {
+        return $this->getWebsiteScopedValue(self::KEY_ZONE_ID, self::DEFAULT_PATH_GROUP, $websiteCode);
+    }
+
+    public function getApiToken($storeId = null): ?string
+    {
+        return $this->getValue(self::KEY_API_TOKEN, self::DEFAULT_PATH_GROUP, $storeId);
+    }
+
+    public function getApiTokenForWebsite(?string $websiteCode = null): ?string
+    {
+        return $this->getWebsiteScopedValue(self::KEY_API_TOKEN, self::DEFAULT_PATH_GROUP, $websiteCode);
+    }
+
+    public function getAccountId($storeId = null): ?string
+    {
+        return $this->getValue(self::KEY_ACCOUNT_ID, self::DEFAULT_PATH_GROUP, $storeId);
+    }
+
+    public function getAccountIdForWebsite(?string $websiteCode = null): ?string
+    {
+        return $this->getWebsiteScopedValue(self::KEY_ACCOUNT_ID, self::DEFAULT_PATH_GROUP, $websiteCode);
     }
 
     public function getApiUrl(): ?string
     {
         return $this->getValue(self::KEY_API_URL, self::DEFAULT_PATH_GROUP);
+    }
+
+    public function getWorkerName($storeId = null): ?string
+    {
+        return $this->getValue(self::KEY_WORKER_NAME, self::WORKER_PATH_GROUP, $storeId);
+    }
+
+    public function getWorkerNameForWebsite(?string $websiteCode = null): ?string
+    {
+        return $this->getWebsiteScopedValue(self::KEY_WORKER_NAME, self::WORKER_PATH_GROUP, $websiteCode);
     }
 
     public function isDebugEnabled(): bool
@@ -90,16 +128,21 @@ class CacheConfig extends \SR\Gateway\Model\Config\Config
         return sprintf((string) $this->getApiUrl(), (string) $this->getZoneId());
     }
 
-    // ─── Worker configuration getters (srcloudflare/worker/*) ───
+    // ─── Worker configuration getters (bytebencher_cloudflare/worker/*) ───
 
-    public function getWorkerDebug(): bool
+    public function getWorkerDebug($storeId = null): bool
     {
-        return (bool) $this->getValue(self::KEY_CONFIG_DEBUG, self::WORKER_PATH_GROUP);
+        return (bool) $this->getValue(self::KEY_CONFIG_DEBUG, self::WORKER_PATH_GROUP, $storeId);
     }
 
-    public function getWorkerTtl(): int
+    public function getWorkerDebugForWebsite(?string $websiteCode = null): bool
     {
-        $override = $this->getValue('default_ttl', self::WORKER_PATH_GROUP);
+        return (bool) $this->getWebsiteScopedValue(self::KEY_CONFIG_DEBUG, self::WORKER_PATH_GROUP, $websiteCode);
+    }
+
+    public function getWorkerTtl($storeId = null): int
+    {
+        $override = $this->getValue('default_ttl', self::WORKER_PATH_GROUP, $storeId);
 
         if ($override !== null && $override !== '') {
             return (int) $override;
@@ -114,9 +157,20 @@ class CacheConfig extends \SR\Gateway\Model\Config\Config
         return (int) $globalTtl;
     }
 
-    public function getWorkerHfpTtl(): int
+    public function getWorkerTtlForWebsite(?string $websiteCode = null): int
     {
-        $value = $this->getValue('hfp_ttl', self::WORKER_PATH_GROUP);
+        $value = $this->getWebsiteScopedValue('default_ttl', self::WORKER_PATH_GROUP, $websiteCode);
+
+        if ($value !== null && $value !== '') {
+            return (int) $value;
+        }
+
+        return $this->getWorkerTtl();
+    }
+
+    public function getWorkerHfpTtl($storeId = null): int
+    {
+        $value = $this->getValue('hfp_ttl', self::WORKER_PATH_GROUP, $storeId);
 
         if ($value !== null && $value !== '') {
             return (int) $value;
@@ -125,14 +179,78 @@ class CacheConfig extends \SR\Gateway\Model\Config\Config
         return 120;
     }
 
-    public function getWorkerAdminPath(): string
+    public function getWorkerHfpTtlForWebsite(?string $websiteCode = null): int
     {
-        return (string) ($this->getValue('admin_path', self::WORKER_PATH_GROUP) ?: 'admin');
+        $value = $this->getWebsiteScopedValue('hfp_ttl', self::WORKER_PATH_GROUP, $websiteCode);
+
+        if ($value !== null && $value !== '') {
+            return (int) $value;
+        }
+
+        return $this->getWorkerHfpTtl();
     }
 
-    public function getWorkerBypassPaths(): string
+    public function getWorkerAdminPath($storeId = null): string
     {
-        return (string) ($this->getValue('bypass_paths', self::WORKER_PATH_GROUP) ?: '');
+        return (string) ($this->getValue('admin_path', self::WORKER_PATH_GROUP, $storeId) ?: 'admin');
+    }
+
+    public function getWorkerAdminPathForWebsite(?string $websiteCode = null): string
+    {
+        return (string) ($this->getWebsiteScopedValue('admin_path', self::WORKER_PATH_GROUP, $websiteCode) ?: 'admin');
+    }
+
+    public function getWorkerBypassPaths($storeId = null): string
+    {
+        return (string) ($this->getValue('bypass_paths', self::WORKER_PATH_GROUP, $storeId) ?: '');
+    }
+
+    public function getWorkerBypassPathsForWebsite(?string $websiteCode = null): string
+    {
+        return (string) ($this->getWebsiteScopedValue('bypass_paths', self::WORKER_PATH_GROUP, $websiteCode) ?: '');
+    }
+
+    public function useWorkerR2Cache($storeId = null): bool
+    {
+        return (bool) $this->getValue('use_r2_cache', self::WORKER_PATH_GROUP, $storeId);
+    }
+
+    public function useWorkerR2CacheForWebsite(?string $websiteCode = null): bool
+    {
+        return (bool) $this->getWebsiteScopedValue('use_r2_cache', self::WORKER_PATH_GROUP, $websiteCode);
+    }
+
+    public function getWorkerR2BucketName($storeId = null): string
+    {
+        return (string) ($this->getValue('r2_bucket_name', self::WORKER_PATH_GROUP, $storeId) ?: '');
+    }
+
+    public function getWorkerR2BucketNameForWebsite(?string $websiteCode = null): string
+    {
+        return (string) ($this->getWebsiteScopedValue('r2_bucket_name', self::WORKER_PATH_GROUP, $websiteCode) ?: '');
+    }
+
+    public function getWorkerR2BucketBinding($storeId = null): string
+    {
+        return (string) ($this->getValue('r2_bucket_binding', self::WORKER_PATH_GROUP, $storeId) ?: 'R2_CACHE');
+    }
+
+    public function getWorkerR2BucketBindingForWebsite(?string $websiteCode = null): string
+    {
+        return (string) ($this->getWebsiteScopedValue('r2_bucket_binding', self::WORKER_PATH_GROUP, $websiteCode) ?: 'R2_CACHE');
+    }
+
+    private function getWebsiteScopedValue(string $field, string $group, ?string $websiteCode = null)
+    {
+        if ($websiteCode === null || $websiteCode === '') {
+            return $this->getValue($field, $group);
+        }
+
+        return $this->scopeConfig->getValue(
+            sprintf($this->pathPattern, $group, $field),
+            ScopeInterface::SCOPE_WEBSITE,
+            $websiteCode
+        );
     }
 
     /**

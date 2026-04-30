@@ -1,0 +1,42 @@
+<?php
+/**
+ * @var \ByteBencher\Cloudflare\Block\Adminhtml\System\Config\DeployWorkerButton $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<?= /* @noEscape */ $block->getButtonHtml() ?>
+<script>
+    function bytebencherCloudflareDeployWorker(button) {
+        const accountIdField = document.getElementById('bytebencher_cloudflare_cache_account_id');
+        const workerNameField = document.getElementById('bytebencher_cloudflare_worker_worker_name');
+        const form = document.createElement('form');
+        const formKey = document.createElement('input');
+        const loadingLabel = '<?= $escaper->escapeJs((string) __('Deploying...')) ?>';
+
+        if (accountIdField && accountIdField.value.trim() === '') {
+            window.alert('<?= $escaper->escapeJs((string) __('Set the Cloudflare Account ID before deploying the worker.')) ?>');
+            return;
+        }
+
+        if (workerNameField && workerNameField.value.trim() === '') {
+            window.alert('<?= $escaper->escapeJs((string) __('Set the Cloudflare Worker Name before deploying the worker.')) ?>');
+            return;
+        }
+
+        if (button) {
+            button.disabled = true;
+            button.textContent = loadingLabel;
+        }
+
+        form.method = 'post';
+        form.action = '<?= $escaper->escapeJs($block->getActionUrl()) ?>';
+
+        formKey.type = 'hidden';
+        formKey.name = 'form_key';
+        formKey.value = '<?= $escaper->escapeJs($block->getFormKey()) ?>';
+
+        form.appendChild(formKey);
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>

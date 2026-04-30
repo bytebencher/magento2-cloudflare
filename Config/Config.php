@@ -1,19 +1,19 @@
 <?php
 /*
- * Copyright © 2022 Studio Raz. All rights reserved.
+ * Copyright © 2022 ByteBencher. All rights reserved.
  * See LICENCE file for license details.
  */
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Config;
+namespace ByteBencher\Cloudflare\Config;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 
 class Config
 {
-    public const EXT_ALIAS = 'srcloudflare';
+    public const EXT_ALIAS = 'bytebencher_cloudflare';
 
     /**
      * Is used to init $this->pathPattern
@@ -94,7 +94,7 @@ class Config
     {
         $value = $this->getValue(static::KEY_CONFIG_IMAGE_FIT, static::DEFAULT_PATH_GROUP, $storeId);
         if (empty($value)) {
-            $value = \SR\Cloudflare\Model\System\Config\Source\ImageFit::NONE;
+            $value = \ByteBencher\Cloudflare\Model\System\Config\Source\ImageFit::NONE;
         }
         return $value;
     }

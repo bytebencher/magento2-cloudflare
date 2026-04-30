@@ -1,16 +1,16 @@
 <?php
 /*
- * Copyright © 2022 Studio Raz. All rights reserved.
+ * Copyright © 2022 ByteBencher. All rights reserved.
  * See LICENCE file for license details.
  */
 
 declare(strict_types=1);
 
-namespace SR\Cloudflare\Plugin\Mirasvit\Asset\BadgeImage;
+namespace ByteBencher\Cloudflare\Plugin\Mirasvit\Asset\BadgeImage;
 
 use Mirasvit\CatalogLabel\Model\Label\Display as LabelDisplay;
-use SR\Cloudflare\Config\ModuleState;
-use SR\Cloudflare\Helper\CloudflareUrlFormatHelper;
+use ByteBencher\Cloudflare\Config\ModuleState;
+use ByteBencher\Cloudflare\Helper\CloudflareUrlFormatHelper;
 
 class RebuildImageSrcUrlPlugin
 {
