@@ -210,6 +210,36 @@ class CacheConfig extends \SR\Gateway\Model\Config\Config
         return (string) ($this->getWebsiteScopedValue('bypass_paths', self::WORKER_PATH_GROUP, $websiteCode) ?: '');
     }
 
+    public function useWorkerR2Cache($storeId = null): bool
+    {
+        return (bool) $this->getValue('use_r2_cache', self::WORKER_PATH_GROUP, $storeId);
+    }
+
+    public function useWorkerR2CacheForWebsite(?string $websiteCode = null): bool
+    {
+        return (bool) $this->getWebsiteScopedValue('use_r2_cache', self::WORKER_PATH_GROUP, $websiteCode);
+    }
+
+    public function getWorkerR2BucketName($storeId = null): string
+    {
+        return (string) ($this->getValue('r2_bucket_name', self::WORKER_PATH_GROUP, $storeId) ?: '');
+    }
+
+    public function getWorkerR2BucketNameForWebsite(?string $websiteCode = null): string
+    {
+        return (string) ($this->getWebsiteScopedValue('r2_bucket_name', self::WORKER_PATH_GROUP, $websiteCode) ?: '');
+    }
+
+    public function getWorkerR2BucketBinding($storeId = null): string
+    {
+        return (string) ($this->getValue('r2_bucket_binding', self::WORKER_PATH_GROUP, $storeId) ?: 'R2_CACHE');
+    }
+
+    public function getWorkerR2BucketBindingForWebsite(?string $websiteCode = null): string
+    {
+        return (string) ($this->getWebsiteScopedValue('r2_bucket_binding', self::WORKER_PATH_GROUP, $websiteCode) ?: 'R2_CACHE');
+    }
+
     private function getWebsiteScopedValue(string $field, string $group, ?string $websiteCode = null)
     {
         if ($websiteCode === null || $websiteCode === '') {

@@ -24,6 +24,9 @@
                 <hfp_ttl>120</hfp_ttl>
                 <admin_path>admin</admin_path>
                 <bypass_paths/>
+                <use_r2_cache>0</use_r2_cache>
+                <r2_bucket_name/>
+                <r2_bucket_binding>R2_CACHE</r2_bucket_binding>
             </worker>
         </bytebencher_cloudflare>
     </default>

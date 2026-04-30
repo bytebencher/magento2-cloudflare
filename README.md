@@ -187,7 +187,7 @@ The module includes a Cloudflare Worker script (`CFWorker/FPC-worker.js`) that m
 Magento can create the worker script on the first deploy and update it on later releases. The only remaining one-time manual setup is adding the Worker route in Cloudflare:
 
 1. Configure **Worker Name** under **Stores > Configuration > ByteBencher > Cloudflare > Worker Deployment**.
-2. Adjust the worker bindings if needed.
+2. Adjust the worker bindings if needed. If you want the optional R2 layer, also fill in **Use R2 Cache Layer**, **R2 Bucket Name**, and **R2 Bucket Binding**.
 3. Click **Deploy FPC Worker**.
 4. In Cloudflare, add a **Route** that maps your Magento store domain to this worker (for example `example.com/*`) if you have not already done so.
 
@@ -198,7 +198,7 @@ Magento uploads the bundled `CFWorker/FPC-worker.js` file and syncs the configur
 1. Log in to the [Cloudflare dashboard](https://dash.cloudflare.com/).
 2. Navigate to **Workers & Pages > Create Application > Create Worker**.
 3. Paste or upload the contents of `CFWorker/FPC-worker.js`.
-4. Set up **Environment Variables** if needed (see below).
+4. Set up **Environment Variables** if needed (see below). If you use R2, also add an **R2 bucket binding** whose variable name matches `R2_BUCKET_BINDING`.
 5. Add a **Route** that maps your Magento store domain to this worker (e.g., `example.com/*`).
 
 ### Worker Environment Variables
@@ -212,10 +212,29 @@ Set these in the Cloudflare Worker **Settings > Variables** panel:
 | `HFP_TTL` | Number | TTL in seconds for hit-for-pass markers. Default: `120`. |
 | `ADMIN_PATH` | String | Admin URL segment to bypass. Default: `admin`. |
 | `BYPASS_PATHS` | String | Comma-separated additional paths to bypass (e.g. `/api,/rest`). |
+| `USE_R2_CACHE` | Boolean | Enables the optional R2 stale fallback layer. Default: `false`. |
+| `R2_BUCKET_BINDING` | String | Worker binding name for the R2 bucket. Default: `R2_CACHE`. |
 
 The Worker strips 50+ common marketing and tracking query parameters to improve cache hit rates. See the `FILTER_GET` constant in `CFWorker/FPC-worker.js` for the complete list.
 
 **Default bypass paths:** `/customer`, `/checkout`, `/catalogsearch`
+
+### Optional R2 Cache Layer
+
+On Cloudflare's higher plans you can add an R2 bucket as a secondary cache store for HTML responses.
+
+- The normal CDN cache remains the primary cache layer.
+- R2 stores a backup copy of cacheable GET responses.
+- The worker serves R2 only when the origin/CDN fetch fails or returns `5xx`.
+
+This is intentionally more conservative than the reference worker implementation. Our module depends on Cloudflare's tag-aware CDN cache for precise Magento purge-by-tag behavior, so we do **not** switch to KV/version-based soft purges or race R2 against every origin miss. That keeps the existing Varnish-like behavior intact while still giving you an Ultra-plan safety net during origin failures.
+
+If you deploy from Magento Admin and enable R2, Magento uploads both:
+
+- the worker variables (`USE_R2_CACHE`, `R2_BUCKET_BINDING`)
+- the actual Cloudflare Worker R2 bucket binding defined by **R2 Bucket Name**
+
+If you deploy manually in Cloudflare, create the R2 bucket binding yourself and make sure its variable name matches `R2_BUCKET_BINDING`.
 
 ### Worker Routes
 

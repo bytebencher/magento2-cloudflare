@@ -2,7 +2,9 @@
  * Cloudflare FPC Worker — Exact Varnish Mirror
  *
  * Replicates Magento 2 Varnish VCL behavior (varnish7.vcl) using CF CDN cache.
- * No R2, no KV. Purge handled by ByteBencher_CloudflareCache PHP module via CF API.
+ * Optional R2 stale fallback is supported, but tag-based purge remains authoritative
+ * through Cloudflare's CDN cache. Purge is handled by ByteBencher_CloudflareCache
+ * PHP module via the Cloudflare API.
  *
  * Caching strategy:
  *   fetch() with cacheEverything + cacheTtlByStatus — forces CDN caching even when
@@ -72,23 +74,46 @@ export default {
 
         // --- vcl_hash ---
         const cacheKey = vclHash(recv.request);
+        const r2Bucket = getR2Bucket(env, config);
+        const r2Key = r2Bucket ? await buildR2CacheKey(cacheKey.url) : null;
 
         // --- Fetch via CDN cache ---
         // fetch() with cacheEverything stores/retrieves from CF's zone cache.
         // cf-cache-status on the response tells us HIT vs MISS — no separate
         // cache.match() needed (Cache API and fetch() with cf.cacheKey can
         // disagree on cache key format, causing false MISSes).
-        const response = await fetch(recv.request, {
-            cf: {
-                cacheKey: cacheKey.url,
-                cacheEverything: true,
-                cacheTtlByStatus: {
-                    '200-299': config.defaultTtl,
-                    '404': 60,
-                    '500-599': 0,
+        let response;
+        try {
+            response = await fetch(recv.request, {
+                cf: {
+                    cacheKey: cacheKey.url,
+                    cacheEverything: true,
+                    cacheTtlByStatus: {
+                        '200-299': config.defaultTtl,
+                        '404': 60,
+                        '500-599': 0,
+                    },
                 },
-            },
-        });
+            });
+        } catch (error) {
+            const r2Fallback = r2Bucket && r2Key
+                ? await getR2CacheResponse(r2Bucket, r2Key, request.method, { allowStale: true })
+                : null;
+
+            if (r2Fallback) {
+                return vclDeliver(r2Fallback.response, 'MISS', config, request, {
+                    reason: 'r2-fallback-error',
+                    ttl: r2Fallback.ttl,
+                    cacheKey: cacheKey.url,
+                    cfStatus: 'ERROR',
+                    r2Status: 'HIT',
+                    r2Stale: r2Fallback.stale,
+                    startTime,
+                });
+            }
+
+            throw error;
+        }
 
         const cfStatus = response.headers.get('cf-cache-status');
 
@@ -111,7 +136,26 @@ export default {
         // --- vcl_backend_response (MISS / EXPIRED / DYNAMIC) ---
         const backend = vclBackendResponse(recv.request, response, config);
 
+        if (response.status >= 500 && response.status <= 599 && r2Bucket && r2Key) {
+            const r2Fallback = await getR2CacheResponse(r2Bucket, r2Key, request.method, { allowStale: true });
+            if (r2Fallback) {
+                return vclDeliver(r2Fallback.response, 'MISS', config, request, {
+                    reason: 'r2-fallback-5xx',
+                    ttl: r2Fallback.ttl,
+                    cacheKey: cacheKey.url,
+                    cfStatus,
+                    r2Status: 'HIT',
+                    r2Stale: r2Fallback.stale,
+                    startTime,
+                });
+            }
+        }
+
         if (backend.cacheable) {
+            if (r2Bucket && r2Key && recv.request.method === 'GET') {
+                ctx.waitUntil(storeR2CacheResponse(r2Bucket, r2Key, response, backend.ttl));
+            }
+
             // CDN cached this via cacheTtlByStatus — Cache-Tag index preserved
             // for purge-by-tag. Do NOT use cache.put() here.
             return vclDeliver(response, 'MISS', config, request, {
@@ -153,6 +197,8 @@ function buildConfig(env) {
         hfpTtl:      parseInt(env.HFP_TTL || '120', 10),
         adminPath:   env.ADMIN_PATH || 'admin',
         bypassPaths: (env.BYPASS_PATHS || '').split(',').map(s => s.trim()).filter(Boolean),
+        useR2Cache: env.USE_R2_CACHE === 'true',
+        r2BucketBinding: (env.R2_BUCKET_BINDING || 'R2_CACHE').trim(),
     };
 }
 
@@ -328,6 +374,89 @@ function buildHitForPassMarker(config) {
     });
 }
 
+function getR2Bucket(env, config) {
+    if (!config.useR2Cache || !config.r2BucketBinding) {
+        return null;
+    }
+
+    const bucket = env[config.r2BucketBinding];
+
+    if (bucket && typeof bucket.get === 'function' && typeof bucket.put === 'function') {
+        return bucket;
+    }
+
+    return null;
+}
+
+async function buildR2CacheKey(cacheKeyUrl) {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(cacheKeyUrl));
+
+    return 'html/' + [...new Uint8Array(digest)]
+        .map((byte) => byte.toString(16).padStart(2, '0'))
+        .join('');
+}
+
+async function getR2CacheResponse(r2Bucket, r2Key, method, { allowStale = false } = {}) {
+    const object = await r2Bucket.get(r2Key);
+    if (!object) {
+        return null;
+    }
+
+    const metadata = object.customMetadata || {};
+    const expiresAt = parseInt(metadata.expiresAt || '0', 10);
+    const stale = expiresAt > 0 && Date.now() > expiresAt;
+
+    if (stale && !allowStale) {
+        return null;
+    }
+
+    const headers = new Headers();
+    const mappedHeaders = {
+        'Cache-Control': metadata.cacheControl,
+        'Content-Encoding': metadata.contentEncoding,
+        'Content-Language': metadata.contentLanguage,
+        'Content-Type': metadata.contentType,
+        'ETag': metadata.etag,
+        'Last-Modified': metadata.lastModified,
+        'X-Magento-Cache-Id': metadata.xMagentoCacheId,
+    };
+
+    for (const [header, value] of Object.entries(mappedHeaders)) {
+        if (value) {
+            headers.set(header, value);
+        }
+    }
+
+    return {
+        response: new Response(method === 'HEAD' ? null : await object.arrayBuffer(), {
+            status: parseInt(metadata.status || '200', 10),
+            headers,
+        }),
+        stale,
+        ttl: expiresAt > 0 ? Math.max(0, Math.floor((expiresAt - Date.now()) / 1000)) : null,
+    };
+}
+
+async function storeR2CacheResponse(r2Bucket, r2Key, response, ttl) {
+    if (!Number.isFinite(ttl) || ttl <= 0) {
+        return;
+    }
+
+    await r2Bucket.put(r2Key, await response.clone().arrayBuffer(), {
+        customMetadata: {
+            status: String(response.status),
+            cacheControl: response.headers.get('Cache-Control') || '',
+            contentEncoding: response.headers.get('Content-Encoding') || '',
+            contentLanguage: response.headers.get('Content-Language') || '',
+            contentType: response.headers.get('Content-Type') || '',
+            etag: response.headers.get('ETag') || '',
+            expiresAt: String(Date.now() + (ttl * 1000)),
+            lastModified: response.headers.get('Last-Modified') || '',
+            xMagentoCacheId: response.headers.get('X-Magento-Cache-Id') || '',
+        },
+    });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // vcl_deliver — Response cleanup before delivery to client
 // Mirrors varnish7.vcl lines 204-231
@@ -395,6 +524,12 @@ function vclDeliver(response, cacheStatus, config, originalRequest, debugMeta = 
             resp.headers.set('X-FPC-Origin-Cache-Control', originCacheControl);
         }
         resp.headers.set('X-FPC-Origin-Status', String(response.status));
+        if (debugMeta.r2Status) {
+            resp.headers.set('X-FPC-R2-Status', debugMeta.r2Status);
+        }
+        if (debugMeta.r2Stale) {
+            resp.headers.set('X-FPC-R2-Stale', '1');
+        }
         resp.headers.set('Server-Timing', `fpc;desc="${cacheStatus} ${debugMeta.reason || 'unknown'}";dur=${workerMs}`);
     }
 

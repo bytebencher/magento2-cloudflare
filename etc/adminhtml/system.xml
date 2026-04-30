@@ -140,6 +140,31 @@
                     <label>Bypass Paths</label>
                     <comment><![CDATA[Maps to worker binding <code>BYPASS_PATHS</code>. Comma-separated list of additional URL path segments that should bypass caching (for example <code>/api,/rest</code>).]]></comment>
                 </field>
+
+                <field id="use_r2_cache" translate="label comment" sortOrder="80" type="select"
+                       showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Use R2 Cache Layer</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Maps to worker binding <code>USE_R2_CACHE</code>. Enables the optional R2 stale fallback layer without changing the primary CDN cache flow.]]></comment>
+                </field>
+
+                <field id="r2_bucket_name" translate="label comment" sortOrder="90" type="text"
+                       showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>R2 Bucket Name</label>
+                    <comment><![CDATA[Cloudflare R2 bucket name used for the optional fallback cache. Required when deploying the worker from Magento Admin with R2 enabled.]]></comment>
+                    <depends>
+                        <field id="use_r2_cache">1</field>
+                    </depends>
+                </field>
+
+                <field id="r2_bucket_binding" translate="label comment" sortOrder="100" type="text"
+                       showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>R2 Bucket Binding</label>
+                    <comment><![CDATA[Maps to worker binding <code>R2_BUCKET_BINDING</code> and the deployed Worker R2 binding name. Default: <code>R2_CACHE</code>.]]></comment>
+                    <depends>
+                        <field id="use_r2_cache">1</field>
+                    </depends>
+                </field>
             </group>
         </section>
     </system>

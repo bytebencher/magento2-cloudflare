@@ -69,6 +69,12 @@ class Deployer
             throw new LocalizedException(__('Set the Cloudflare API Token before deploying the worker.'));
         }
 
+        if ($this->config->useWorkerR2CacheForWebsite($websiteCode)
+            && trim($this->config->getWorkerR2BucketNameForWebsite($websiteCode)) === ''
+        ) {
+            throw new LocalizedException(__('Set the Cloudflare R2 Bucket Name before deploying the worker with R2 enabled.'));
+        }
+
         if (!$this->fileDriver->isExists($this->getScriptPath())) {
             throw new LocalizedException(__('The bundled Cloudflare worker script could not be found.'));
         }
@@ -97,6 +103,16 @@ class Deployer
                 'name' => 'ADMIN_PATH',
                 'text' => $this->config->getWorkerAdminPathForWebsite($websiteCode),
             ],
+            [
+                'type' => 'plain_text',
+                'name' => 'USE_R2_CACHE',
+                'text' => $this->config->useWorkerR2CacheForWebsite($websiteCode) ? 'true' : 'false',
+            ],
+            [
+                'type' => 'plain_text',
+                'name' => 'R2_BUCKET_BINDING',
+                'text' => $this->config->getWorkerR2BucketBindingForWebsite($websiteCode),
+            ],
         ];
 
         $bypassPaths = trim($this->config->getWorkerBypassPathsForWebsite($websiteCode));
@@ -105,6 +121,14 @@ class Deployer
                 'type' => 'plain_text',
                 'name' => 'BYPASS_PATHS',
                 'text' => $bypassPaths,
+            ];
+        }
+
+        if ($this->config->useWorkerR2CacheForWebsite($websiteCode)) {
+            $bindings[] = [
+                'type' => 'r2_bucket',
+                'name' => $this->config->getWorkerR2BucketBindingForWebsite($websiteCode),
+                'bucket_name' => $this->config->getWorkerR2BucketNameForWebsite($websiteCode),
             ];
         }
 
