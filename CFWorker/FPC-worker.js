@@ -52,6 +52,7 @@ const FILTER_GET = [
 
 // Bypass path segments (mirrors VCL vcl_recv pass rules)
 const STATIC_BYPASS = ['/customer', '/checkout', '/catalogsearch'];
+const MAX_R2_OBJECT_BYTES = 2 * 1024 * 1024;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main entry point (ES Module format)
@@ -459,9 +460,14 @@ async function storeR2CacheResponse(r2Bucket, r2Key, response, ttl) {
         return;
     }
 
+    const contentLength = parseInt(response.headers.get('Content-Length') || '0', 10);
+    if (contentLength > MAX_R2_OBJECT_BYTES) {
+        return;
+    }
+
     const clonedResponse = response.clone();
 
-    await r2Bucket.put(r2Key, clonedResponse.body ?? new Uint8Array(), {
+    await r2Bucket.put(r2Key, await clonedResponse.arrayBuffer(), {
         customMetadata: {
             status: String(response.status),
             cacheControl: response.headers.get('Cache-Control') || '',
