@@ -75,7 +75,19 @@ export default {
         // --- vcl_hash ---
         const cacheKey = vclHash(recv.request);
         const r2Bucket = getR2Bucket(env, config);
-        const r2Key = r2Bucket ? await buildR2CacheKey(cacheKey.url) : null;
+        let r2KeyPromise = null;
+
+        const getR2Key = async () => {
+            if (!r2Bucket) {
+                return null;
+            }
+
+            if (r2KeyPromise === null) {
+                r2KeyPromise = buildR2CacheKey(cacheKey.url);
+            }
+
+            return r2KeyPromise;
+        };
 
         // --- Fetch via CDN cache ---
         // fetch() with cacheEverything stores/retrieves from CF's zone cache.
@@ -96,8 +108,8 @@ export default {
                 },
             });
         } catch (error) {
-            const r2Fallback = r2Bucket && r2Key
-                ? await getR2CacheResponse(r2Bucket, r2Key, request.method, { allowStale: true })
+            const r2Fallback = r2Bucket
+                ? await getR2CacheResponse(r2Bucket, await getR2Key(), request.method, { allowStale: true })
                 : null;
 
             if (r2Fallback) {
@@ -136,8 +148,13 @@ export default {
         // --- vcl_backend_response (MISS / EXPIRED / DYNAMIC) ---
         const backend = vclBackendResponse(recv.request, response, config);
 
-        if (response.status >= 500 && response.status <= 599 && r2Bucket && r2Key) {
-            const r2Fallback = await getR2CacheResponse(r2Bucket, r2Key, request.method, { allowStale: true });
+        if (response.status >= 500 && response.status <= 599 && r2Bucket) {
+            const r2Fallback = await getR2CacheResponse(
+                r2Bucket,
+                await getR2Key(),
+                request.method,
+                { allowStale: true }
+            );
             if (r2Fallback) {
                 return vclDeliver(r2Fallback.response, 'MISS', config, request, {
                     reason: 'r2-fallback-5xx',
@@ -152,8 +169,8 @@ export default {
         }
 
         if (backend.cacheable) {
-            if (r2Bucket && r2Key && recv.request.method === 'GET') {
-                ctx.waitUntil(storeR2CacheResponse(r2Bucket, r2Key, response, backend.ttl));
+            if (r2Bucket && recv.request.method === 'GET') {
+                ctx.waitUntil(storeR2CacheResponse(r2Bucket, await getR2Key(), response, backend.ttl));
             }
 
             // CDN cached this via cacheTtlByStatus — Cache-Tag index preserved
@@ -442,7 +459,9 @@ async function storeR2CacheResponse(r2Bucket, r2Key, response, ttl) {
         return;
     }
 
-    await r2Bucket.put(r2Key, await response.clone().arrayBuffer(), {
+    const clonedResponse = response.clone();
+
+    await r2Bucket.put(r2Key, clonedResponse.body ?? new Uint8Array(), {
         customMetadata: {
             status: String(response.status),
             cacheControl: response.headers.get('Cache-Control') || '',
