@@ -52,6 +52,8 @@ const FILTER_GET = [
 
 // Bypass path segments (mirrors VCL vcl_recv pass rules)
 const STATIC_BYPASS = ['/customer', '/checkout', '/catalogsearch'];
+// Keep R2 backup writes bounded; very large HTML pages are skipped to avoid
+// excessive worker memory usage during fallback serialization.
 const MAX_R2_OBJECT_BYTES = 2 * 1024 * 1024;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -460,14 +462,19 @@ async function storeR2CacheResponse(r2Bucket, r2Key, response, ttl) {
         return;
     }
 
-    const contentLength = parseInt(response.headers.get('Content-Length') || '0', 10);
-    if (contentLength > MAX_R2_OBJECT_BYTES) {
+    const contentLengthHeader = response.headers.get('Content-Length');
+    if (contentLengthHeader !== null && parseInt(contentLengthHeader, 10) > MAX_R2_OBJECT_BYTES) {
         return;
     }
 
     const clonedResponse = response.clone();
+    const body = await clonedResponse.arrayBuffer();
 
-    await r2Bucket.put(r2Key, await clonedResponse.arrayBuffer(), {
+    if (body.byteLength > MAX_R2_OBJECT_BYTES) {
+        return;
+    }
+
+    await r2Bucket.put(r2Key, body, {
         customMetadata: {
             status: String(response.status),
             cacheControl: response.headers.get('Cache-Control') || '',

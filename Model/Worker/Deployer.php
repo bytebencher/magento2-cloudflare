@@ -72,7 +72,7 @@ class Deployer
         if ($this->config->useWorkerR2CacheForWebsite($websiteCode)
             && trim($this->config->getWorkerR2BucketNameForWebsite($websiteCode)) === ''
         ) {
-            throw new LocalizedException(__('Set the Cloudflare R2 Bucket Name before deploying the worker with R2 enabled.'));
+            throw new LocalizedException(__('Cloudflare R2 Bucket Name is required when R2 cache is enabled.'));
         }
 
         if (!$this->fileDriver->isExists($this->getScriptPath())) {
